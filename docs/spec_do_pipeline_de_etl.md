@@ -1,6 +1,8 @@
 # SPEC - Pipeline de ETL de Consolidação: Bíblia ⇄ Catecismo
 
 > **Revisão 2 — 2026-11-06.** Atualizada após análise das fontes reais. As decisões tomadas estão marcadas como **[DECIDIDO]**; observações e escopo futuro estão na seção 11.
+>
+> **Revisão 3 — 2026-11-06 [DECIDIDO].** A tradução CNBB foi retirada do projeto (a fonte tinha texto perdido e deslocado); restam Matos Soares e Ave-Maria.
 
 ## 1. Visão Geral
 
@@ -17,7 +19,6 @@ Especificação técnica do pipeline de extração, transformação e carga (ETL
 
 * Todo versículo e todo parágrafo é exportado **exatamente** como está na fonte: palavras, pontuação, acentos, espaços, caracteres invisíveis e marcações.
 * Isso inclui, sem exceção:
-  * CNBB: marcações `<J>…</J>` (palavras de Jesus) e títulos `[ Salmo de Davi. ]`;
   * Ave-Maria: asteriscos (ex.: Gn 1,8 `…dia.*`) e hífens suaves `U+00AD` (ex.: Gn 1,6 `ou­tras`);
   * Catecismo: blocos de notas de rodapé presentes no campo `texto` e parágrafos cujo texto é apenas nota.
 * Versículos juntados na fonte **não são divididos**; versículos vazios **não são preenchidos** com texto de outra fonte.
@@ -35,7 +36,6 @@ Ao final da execução, o ETL compara cada texto gerado com o texto original da 
 C:\Users\ederd\estudo\estudoCatolico\
 ├── biblia-db\                        # Matos Soares — biblia.json
 ├── bibliaAveMariaJSON\               # Ave-Maria — bibliaAveMaria.json
-├── Open-Source-Catholic-Bible\       # CNBB — CNBB.zip (CNBB.SQLite3)
 └── catecismo-da-igreja-catolica\     # CIC — catecismo.json
 ```
 
@@ -43,25 +43,22 @@ C:\Users\ederd\estudo\estudoCatolico\
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Matos Soares | `biblia.json` | 73 | 35.602 (+22 números repetidos) | Vulgata (Clementina) | Divisão própria em Pr, Sir, Ct, Jó |
 | Ave-Maria | `bibliaAveMaria.json` | 73 | 35.450 | Vulgata nos Salmos | Junta versículos em listas (seção 6.3) |
-| CNBB | `CNBB.zip` → `CNBB.SQLite3` (tabelas `books`, `verses`) | **66** | 31.102 (180 vazios) | Hebraica | Sem deuterocanônicos e sem partes gregas de Dn/Est |
 | CIC | `catecismo.json` | — | 2.865 parágrafos | Hebraica (Salmos) | Ver seção 7 |
 
 * **Matos Soares — números de versículo repetidos [DECIDIDO]:** os 22 casos em que o mesmo número de versículo aparece mais de uma vez no mesmo capítulo são mantidos **todos**, na ordem da fonte e com o texto intacto (nenhuma ocorrência é descartada ou fundida). O posicionamento de cada ocorrência na chave canônica é definido em `exceptions/matos_soares.json`, após levantamento caso a caso.
 * `bibliaAveMariaRAW.json` **não é usado**: tem texto idêntico ao `bibliaAveMaria.json` em todos os 35.450 versículos.
-* O `CNBB.zip` original **nunca é alterado**: o ETL extrai o `CNBB.SQLite3` para `etl/.cache/` (ignorado pelo git) e o abre em modo somente leitura.
 * Os caminhos das fontes ficam em arquivo de configuração (`etl/config/sources.json`), não fixos no código.
 
 ---
 
 ## 4. Versificação Padrão **[DECIDIDO]**
 
-* A chave canônica de todo o projeto é a **numeração hebraica**, a mesma usada pelo CIC e pela CNBB.
+* A chave canônica de todo o projeto é a **numeração hebraica**, a mesma usada pelo CIC.
 * Formato da chave: `USFM.CAPÍTULO.VERSÍCULO` (ex.: `PSA.51.3`).
 * Matos Soares e Ave-Maria são **alinhadas** à chave canônica através da **Tabela de Conversão de Versificação** (seção 6). O texto delas não é alterado; apenas é posicionado no versículo canônico correspondente.
 * **Exceção — Daniel e Ester [DECIDIDO]:** nesses dois livros a chave canônica segue a **numeração católica**, como o CIC cita, e não a separação em livros próprios da tabela `org` (`S3Y`, `SUS`, `BEL`, `ESG`):
   * Daniel com 14 capítulos; Dn 3 com 100 versículos (Cântico dos três jovens em Dn 3,24-90); Susana = Dn 13; Bel e o Dragão = Dn 14.
   * Ester com os acréscimos gregos dentro do próprio livro, na numeração das edições católicas.
-  * A CNBB, que não tem essas partes, recebe `null` nelas. Os trechos que ela tem são alinhados pela tabela (ex.: Dn 3,24-30 da CNBB = Dn 3,91-97 católico).
 
 ---
 
@@ -80,7 +77,6 @@ Organizado pela numeração canônica. Cada tradução traz seu texto **original
     {
       "verse": 3,
       "translations": {
-        "cnbb":         { "text": "Ó Deus, tem piedade de mim, conforme a tua misericórdia; ..." },
         "ave_maria":    { "ref": "Sl 50,3", "text": "<texto original da Ave-Maria>" },
         "matos_soares": { "ref": "Sl 50,3", "text": "<texto original de Matos Soares>" }
       },
@@ -92,7 +88,7 @@ Organizado pela numeração canônica. Cada tradução traz seu texto **original
 
 Regras:
 * **`ref` opcional:** omitido quando a referência da tradução é igual à canônica.
-* **Ausência na fonte:** a tradução recebe `null` (ex.: `"cnbb": null` em Tobias, ou em versículo vazio na fonte).
+* **Ausência na fonte:** a tradução recebe `null` (ex.: versículo canônico que a tradução não tem).
 * **Versículos juntados na fonte:** o texto vai inteiro no primeiro versículo canônico, com `ref` indicando o intervalo; os demais versículos do intervalo recebem `null` para aquela tradução.
   ```json
   "ave_maria": { "ref": "Js 12,8-24", "text": "<texto original completo, sem divisão>" }
@@ -144,8 +140,7 @@ Regras:
   ```json
   {
     "matos_soares": { "name": "Matos Soares", "versification": "vulgata", "books": 73 },
-    "ave_maria":    { "name": "Ave-Maria",    "versification": "vulgata", "books": 73 },
-    "cnbb":         { "name": "CNBB",         "versification": "hebraica", "books": 66 }
+    "ave_maria":    { "name": "Ave-Maria",    "versification": "vulgata", "books": 73 }
   }
   ```
 * **`etl/output/books.json`** — os 73 livros: USFM, nome padronizado, testamento, capítulos e versículos por capítulo (numeração canônica).
@@ -162,10 +157,9 @@ Documento de dados (não código) que diz, para cada tradução, **qual versícu
 | Tipo | Onde | Fonte afetada |
 | :--- | :--- | :--- |
 | Numeração dos Salmos (Vulgata × hebraica) e títulos contados ou não como versículo | Salmos | Ave-Maria, Matos Soares |
-| Fronteira de capítulos diferente | Lv 5–6 · Nm 16–17 · Ne 3–4 · Ez 20–21 · Joel (3 × 4 caps.) · Malaquias (3 × 4 caps.) | Matos Soares / CNBB × Ave-Maria |
+| Fronteira de capítulos diferente | Lv 5–6 · Nm 16–17 · Ne 3–4 · Ez 20–21 · Joel (3 × 4 caps.) · Malaquias (3 × 4 caps.) | Matos Soares × Ave-Maria |
 | Divisão de versículos da Vulgata | Pr · Sir · Ct · Jó | Matos Soares |
 | Versículos juntados em listas (seção 6.3) | Js 12, 15, 18, 19 · 1Rs 4 · 1Cr 6, 8, 9, 24, 25 · Esd 2 · Ne 7, 10, 12 | Ave-Maria |
-| Partes gregas ausentes | Dn 3,24-90 · Dn 13–14 · Est 11–16 (numeração Vulgata) | CNBB |
 | Pequenas diferenças (1 a 6 versículos) | ~40 livros, inclusive NT | Todas |
 
 ### 6.2 Origem da tabela **[DECIDIDO — Opção A: tabelas públicas]**
@@ -182,10 +176,9 @@ Documento de dados (não código) que diz, para cada tradução, **qual versícu
 * **As traduções locais são híbridas** — não seguem uma única tabela pública:
   * **Matos Soares:** compatível com `vul` (Joel 3 caps., Malaquias 4 caps., Salmos Vulgata).
   * **Ave-Maria:** Salmos pela Vulgata, mas Joel (4 caps.) e Malaquias (3 caps.) pela numeração hebraica.
-  * **CNBB:** Joel (3 caps.) e Malaquias (4 caps.) como `eng`, mas títulos dos Salmos contados como versículo, como `org`.
   * Por isso a configuração define, **por tradução e por livro**, qual tabela base se aplica (`vul`, `eng` ou identidade com `org`), mais as exceções.
 * **Fonte secundária (referência):** CrossWire/SWORD (`canon_vulg.h`). Usada só para conferência: as tabelas `Catholic`/`Catholic2` não têm mapeamento e há divergências conhecidas entre SWORD e JSword.
-* **Camada de exceções por fonte:** as tabelas públicas descrevem versificações *padrão*; cada arquivo local tem particularidades próprias (versículos juntados na Ave-Maria, números repetidos em Matos Soares, versículos vazios na CNBB). Essas particularidades ficam num arquivo de exceções separado, documentado e revisável, sem alterar texto.
+* **Camada de exceções por fonte:** as tabelas públicas descrevem versificações *padrão*; cada arquivo local tem particularidades próprias (versículos juntados na Ave-Maria, números repetidos em Matos Soares). Essas particularidades ficam num arquivo de exceções separado, documentado e revisável, sem alterar texto.
 * **Conferência automática:** o ETL valida a tabela contra os dados reais (contagem de capítulos/versículos por livro em cada fonte) e lista no relatório todo ponto em que a tabela pública e a fonte local não concordam.
 * **Licença das tabelas:** MIT — permite uso, cópia e redistribuição, mantendo o aviso de copyright e da licença junto aos arquivos incorporados.
 
@@ -315,7 +308,7 @@ Siglas do CIC observadas na fonte (incluir variantes com e sem espaço após o n
 | JUD | São Judas | Jd* | NT |
 | REV | Apocalipse | Ap | NT |
 
-**Mapeamento das fontes bíblicas para USFM:** feito pela **ordem fixa dos livros** de cada fonte (listas explícitas e conferidas), não por busca de nome — os nomes são ambíguos (ex.: `Jó` × `João`, `Livro de Job (Jó)`). Ordens diferem entre fontes (ex.: Ave-Maria coloca Jó e Salmos antes de 1–2 Macabeus). A CNBB usa `book_number` (10, 20, …, 730).
+**Mapeamento das fontes bíblicas para USFM:** feito pela **ordem fixa dos livros** de cada fonte (listas explícitas e conferidas), não por busca de nome — os nomes são ambíguos (ex.: `Jó` × `João`, `Livro de Job (Jó)`). Ordens diferem entre fontes (ex.: Ave-Maria coloca Jó e Salmos antes de 1–2 Macabeus).
 
 ---
 
@@ -323,7 +316,7 @@ Siglas do CIC observadas na fonte (incluir variantes com e sem espaço após o n
 
 ```text
 [1] Leitura das fontes (sem alterar textos)
-    ├── Matos Soares (JSON), Ave-Maria (JSON), CNBB (SQLite extraído para etl/.cache/), CIC (JSON)
+    ├── Matos Soares (JSON), Ave-Maria (JSON), CIC (JSON)
     └── Mapeamento de livros para USFM por ordem fixa
 [2] Alinhamento de versificação
     └── Aplicar Tabela de Conversão → chave canônica (hebraica) + `ref` quando diferente
@@ -368,26 +361,22 @@ etl/
 │       ├── LICENSE-ubsicap.txt
 │       └── exceptions/              # particularidades de cada fonte (seção 6.2)
 │           ├── matos_soares.json
-│           ├── ave_maria.json
-│           └── cnbb.json
+│           └── ave_maria.json
 ├── src/
-│   ├── sources/                     # leitores: Matos Soares, Ave-Maria, CNBB, CIC
+│   ├── sources/                     # leitores: Matos Soares, Ave-Maria, CIC
 │   ├── versification/               # leitura dos .vrs + exceções → chave canônica
 │   ├── catechism/                   # filtros (seção 7) e parser de citações (seção 8)
 │   ├── build/                       # cruzamento e exportação
 │   └── index.ts                     # executa o pipeline completo
 ├── test/                            # testes (inclui o teste de fidelidade — seção 2.1)
-├── .cache/                          # CNBB.SQLite3 extraído (ignorado pelo git)
 ├── reports/                         # relatório de execução (ignorado pelo git)
 └── output/                          # JSONs gerados (seção 5)
 ```
 
 **Tecnologia:**
 * **Node.js 24** (instalado: v24.22.1) + **TypeScript**.
-* **SQLite:** módulo nativo `node:sqlite` (sem dependência externa), aberto em modo somente leitura.
-* **ZIP:** uma biblioteca pequena para extrair o `CNBB.zip` (ex.: `fflate`), já que o Node não lê ZIP nativamente.
 * **Testes:** executor nativo `node:test`.
-* **Git [DECIDIDO]:** `etl/output/`, `etl/reports/` e `etl/.cache/` **não são versionados** (ficam no `.gitignore`); a base é sempre regenerada pelo ETL.
+* **Git [DECIDIDO]:** `etl/output/` e `etl/reports/` **não são versionados** (ficam no `.gitignore`); a base é sempre regenerada pelo ETL.
 * **Execução:** um único comando (ex.: `npm run build:data`) gera `etl/output/` do zero; a pasta é apagada e recriada a cada execução para não sobrar arquivo antigo.
 * Leitura de JSON das fontes com `utf-8` e remoção apenas do BOM do *arquivo*, se existir; o conteúdo dos textos nunca é normalizado (sem `normalize()`, sem `trim()`).
 
@@ -397,5 +386,5 @@ etl/
 
 | # | Item | Situação |
 | :--- | :--- | :--- |
-| 1 | **Direitos autorais** (Ave-Maria, CNBB, CIC/LEV) | **[CIENTE]** Não impede o desenvolvimento local; responsabilidade do projeto que publicar a base |
+| 1 | **Direitos autorais** (Ave-Maria, CIC/LEV) | **[CIENTE]** Não impede o desenvolvimento local; responsabilidade do projeto que publicar a base |
 | 2 | **Notas de rodapé do CIC** | **[DECIDIDO]** Fora desta versão; planejado para versão futura; exigiria nova fonte (texto do vatican.va indicado em `catecismo.json` → `fonte`) |

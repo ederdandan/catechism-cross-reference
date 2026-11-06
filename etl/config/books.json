@@ -1,0 +1,1255 @@
+{
+  "$comment": "Livros (spec seção 9) e ordem fixa dos livros em cada fonte. source_name/short_name são copiados da fonte e conferidos pelos leitores.",
+  "books": [
+    {
+      "usfm": "GEN",
+      "name": "Gênesis",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Gn"
+      ]
+    },
+    {
+      "usfm": "EXO",
+      "name": "Êxodo",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ex"
+      ]
+    },
+    {
+      "usfm": "LEV",
+      "name": "Levítico",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Lv"
+      ]
+    },
+    {
+      "usfm": "NUM",
+      "name": "Números",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Nm"
+      ]
+    },
+    {
+      "usfm": "DEU",
+      "name": "Deuteronômio",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Dt"
+      ]
+    },
+    {
+      "usfm": "JOS",
+      "name": "Josué",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Js"
+      ]
+    },
+    {
+      "usfm": "JDG",
+      "name": "Juízes",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Jz"
+      ]
+    },
+    {
+      "usfm": "RUT",
+      "name": "Rute",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Rt"
+      ]
+    },
+    {
+      "usfm": "1SA",
+      "name": "1 Samuel",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "1 Sm"
+      ]
+    },
+    {
+      "usfm": "2SA",
+      "name": "2 Samuel",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "2 Sm"
+      ]
+    },
+    {
+      "usfm": "1KI",
+      "name": "1 Reis",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "1 Rs"
+      ]
+    },
+    {
+      "usfm": "2KI",
+      "name": "2 Reis",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "2 Rs"
+      ]
+    },
+    {
+      "usfm": "1CH",
+      "name": "1 Crônicas",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "1 Cr"
+      ]
+    },
+    {
+      "usfm": "2CH",
+      "name": "2 Crônicas",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "2 Cr"
+      ]
+    },
+    {
+      "usfm": "EZR",
+      "name": "Esdras",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Esd"
+      ]
+    },
+    {
+      "usfm": "NEH",
+      "name": "Neemias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ne"
+      ]
+    },
+    {
+      "usfm": "TOB",
+      "name": "Tobias",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "Tb"
+      ]
+    },
+    {
+      "usfm": "JDT",
+      "name": "Judite",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "Jdt"
+      ]
+    },
+    {
+      "usfm": "EST",
+      "name": "Ester",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Est"
+      ]
+    },
+    {
+      "usfm": "1MA",
+      "name": "1 Macabeus",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "1 Mac"
+      ]
+    },
+    {
+      "usfm": "2MA",
+      "name": "2 Macabeus",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "2 Mac"
+      ]
+    },
+    {
+      "usfm": "JOB",
+      "name": "Jó",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Job"
+      ]
+    },
+    {
+      "usfm": "PSA",
+      "name": "Salmos",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Sl"
+      ]
+    },
+    {
+      "usfm": "PRO",
+      "name": "Provérbios",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Pr"
+      ]
+    },
+    {
+      "usfm": "ECC",
+      "name": "Eclesiastes",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ecl"
+      ]
+    },
+    {
+      "usfm": "SNG",
+      "name": "Cântico dos Cânticos",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ct"
+      ]
+    },
+    {
+      "usfm": "WIS",
+      "name": "Sabedoria",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "Sb"
+      ]
+    },
+    {
+      "usfm": "SIR",
+      "name": "Eclesiástico / Sirácida",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "Sir"
+      ]
+    },
+    {
+      "usfm": "ISA",
+      "name": "Isaías",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Is"
+      ]
+    },
+    {
+      "usfm": "JER",
+      "name": "Jeremias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Jr"
+      ]
+    },
+    {
+      "usfm": "LAM",
+      "name": "Lamentações",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Lm"
+      ]
+    },
+    {
+      "usfm": "BAR",
+      "name": "Baruc",
+      "testament": "Deuterocanônico",
+      "cic_abbreviations": [
+        "Br",
+        "Ba"
+      ]
+    },
+    {
+      "usfm": "EZK",
+      "name": "Ezequiel",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ez"
+      ]
+    },
+    {
+      "usfm": "DAN",
+      "name": "Daniel",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Dn"
+      ]
+    },
+    {
+      "usfm": "HOS",
+      "name": "Oseias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Os"
+      ]
+    },
+    {
+      "usfm": "JOL",
+      "name": "Joel",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Jl"
+      ]
+    },
+    {
+      "usfm": "AMO",
+      "name": "Amós",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Am"
+      ]
+    },
+    {
+      "usfm": "OBA",
+      "name": "Abdias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ab"
+      ]
+    },
+    {
+      "usfm": "JON",
+      "name": "Jonas",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Jn"
+      ]
+    },
+    {
+      "usfm": "MIC",
+      "name": "Miqueias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Mq"
+      ]
+    },
+    {
+      "usfm": "NAM",
+      "name": "Naum",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Na"
+      ]
+    },
+    {
+      "usfm": "HAB",
+      "name": "Habacuc",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Hab"
+      ]
+    },
+    {
+      "usfm": "ZEP",
+      "name": "Sofonias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Sf"
+      ]
+    },
+    {
+      "usfm": "HAG",
+      "name": "Ageu",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ag"
+      ]
+    },
+    {
+      "usfm": "ZEC",
+      "name": "Zacarias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Zc"
+      ]
+    },
+    {
+      "usfm": "MAL",
+      "name": "Malaquias",
+      "testament": "AT",
+      "cic_abbreviations": [
+        "Ml"
+      ]
+    },
+    {
+      "usfm": "MAT",
+      "name": "São Mateus",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Mt"
+      ]
+    },
+    {
+      "usfm": "MRK",
+      "name": "São Marcos",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Mc"
+      ]
+    },
+    {
+      "usfm": "LUK",
+      "name": "São Lucas",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Lc"
+      ]
+    },
+    {
+      "usfm": "JHN",
+      "name": "São João",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Jo"
+      ]
+    },
+    {
+      "usfm": "ACT",
+      "name": "Atos dos Apóstolos",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Act",
+        "At"
+      ]
+    },
+    {
+      "usfm": "ROM",
+      "name": "Romanos",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Rm",
+        "Rom"
+      ]
+    },
+    {
+      "usfm": "1CO",
+      "name": "1 Coríntios",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "1 Cor"
+      ]
+    },
+    {
+      "usfm": "2CO",
+      "name": "2 Coríntios",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "2 Cor"
+      ]
+    },
+    {
+      "usfm": "GAL",
+      "name": "Gálatas",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Gl"
+      ]
+    },
+    {
+      "usfm": "EPH",
+      "name": "Efésios",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Ef"
+      ]
+    },
+    {
+      "usfm": "PHP",
+      "name": "Filipenses",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Fl"
+      ]
+    },
+    {
+      "usfm": "COL",
+      "name": "Colossenses",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Cl"
+      ]
+    },
+    {
+      "usfm": "1TH",
+      "name": "1 Tessalonicenses",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "1 Ts"
+      ]
+    },
+    {
+      "usfm": "2TH",
+      "name": "2 Tessalonicenses",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "2 Ts"
+      ]
+    },
+    {
+      "usfm": "1TI",
+      "name": "1 Timóteo",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "1 Tm"
+      ]
+    },
+    {
+      "usfm": "2TI",
+      "name": "2 Timóteo",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "2 Tm"
+      ]
+    },
+    {
+      "usfm": "TIT",
+      "name": "Tito",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Tt"
+      ]
+    },
+    {
+      "usfm": "PHM",
+      "name": "Filêmon",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Fm"
+      ]
+    },
+    {
+      "usfm": "HEB",
+      "name": "Hebreus",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Heb"
+      ]
+    },
+    {
+      "usfm": "JAS",
+      "name": "São Tiago",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Tg"
+      ]
+    },
+    {
+      "usfm": "1PE",
+      "name": "1 São Pedro",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "1 Pe"
+      ]
+    },
+    {
+      "usfm": "2PE",
+      "name": "2 São Pedro",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "2 Pe"
+      ]
+    },
+    {
+      "usfm": "1JN",
+      "name": "1 São João",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "1 Jo"
+      ]
+    },
+    {
+      "usfm": "2JN",
+      "name": "2 São João",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "2 Jo"
+      ]
+    },
+    {
+      "usfm": "3JN",
+      "name": "3 São João",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "3 Jo"
+      ]
+    },
+    {
+      "usfm": "JUD",
+      "name": "São Judas",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Jd"
+      ]
+    },
+    {
+      "usfm": "REV",
+      "name": "Apocalipse",
+      "testament": "NT",
+      "cic_abbreviations": [
+        "Ap"
+      ]
+    }
+  ],
+  "source_order": {
+    "matos_soares": [
+      {
+        "usfm": "GEN",
+        "source_name": "Gênesis"
+      },
+      {
+        "usfm": "EXO",
+        "source_name": "Êxodo"
+      },
+      {
+        "usfm": "LEV",
+        "source_name": "Levítico"
+      },
+      {
+        "usfm": "NUM",
+        "source_name": "Números"
+      },
+      {
+        "usfm": "DEU",
+        "source_name": "Deuteronómio"
+      },
+      {
+        "usfm": "JOS",
+        "source_name": "Livro de Josué"
+      },
+      {
+        "usfm": "JDG",
+        "source_name": "Livro dos Juízes"
+      },
+      {
+        "usfm": "RUT",
+        "source_name": "Livro de Rute"
+      },
+      {
+        "usfm": "1SA",
+        "source_name": "Livro Primeiro de Samuel"
+      },
+      {
+        "usfm": "2SA",
+        "source_name": "Livro Segundo de Samuel"
+      },
+      {
+        "usfm": "1KI",
+        "source_name": "Livro Primeiro dos Reis"
+      },
+      {
+        "usfm": "2KI",
+        "source_name": "Livro Segundo dos Reis"
+      },
+      {
+        "usfm": "1CH",
+        "source_name": "Livro Primeiro das Crónicas"
+      },
+      {
+        "usfm": "2CH",
+        "source_name": "Livro Segundo das Crónicas"
+      },
+      {
+        "usfm": "EZR",
+        "source_name": "Livro de Esdras"
+      },
+      {
+        "usfm": "NEH",
+        "source_name": "Livro de Neemias"
+      },
+      {
+        "usfm": "TOB",
+        "source_name": "Livro de Tobias"
+      },
+      {
+        "usfm": "JDT",
+        "source_name": "Livro de Judit"
+      },
+      {
+        "usfm": "EST",
+        "source_name": "Livro de Ester"
+      },
+      {
+        "usfm": "1MA",
+        "source_name": "Livro Primeiro dos Macabeus"
+      },
+      {
+        "usfm": "2MA",
+        "source_name": "Livro Segundo dos Macabeus"
+      },
+      {
+        "usfm": "JOB",
+        "source_name": "Livro de Job (Jó)"
+      },
+      {
+        "usfm": "PSA",
+        "source_name": "Salmos"
+      },
+      {
+        "usfm": "PRO",
+        "source_name": "Livro dos Provérbios"
+      },
+      {
+        "usfm": "ECC",
+        "source_name": "Livro do Eclesiaste"
+      },
+      {
+        "usfm": "SNG",
+        "source_name": "Cânticos dos Cânticos"
+      },
+      {
+        "usfm": "WIS",
+        "source_name": "Livro da Sabedoria"
+      },
+      {
+        "usfm": "SIR",
+        "source_name": "Eclesiástico"
+      },
+      {
+        "usfm": "ISA",
+        "source_name": "Profecia de Isaías"
+      },
+      {
+        "usfm": "JER",
+        "source_name": "Profecia de Jeremias"
+      },
+      {
+        "usfm": "LAM",
+        "source_name": "Trenos ou Lamentações de Jeremias"
+      },
+      {
+        "usfm": "BAR",
+        "source_name": "Profecia de Baruch"
+      },
+      {
+        "usfm": "EZK",
+        "source_name": "Profecia de Ezequiel"
+      },
+      {
+        "usfm": "DAN",
+        "source_name": "Profecia de Daniel"
+      },
+      {
+        "usfm": "HOS",
+        "source_name": "Oseias"
+      },
+      {
+        "usfm": "JOL",
+        "source_name": "Profecia de Joel"
+      },
+      {
+        "usfm": "AMO",
+        "source_name": "Profecia de Amós"
+      },
+      {
+        "usfm": "OBA",
+        "source_name": "Profecia de Abdias"
+      },
+      {
+        "usfm": "JON",
+        "source_name": "Profecia de Jonas"
+      },
+      {
+        "usfm": "MIC",
+        "source_name": "Profecia de Miqueias"
+      },
+      {
+        "usfm": "NAM",
+        "source_name": "Profecia de Naum"
+      },
+      {
+        "usfm": "HAB",
+        "source_name": "Profecia de Habucuc"
+      },
+      {
+        "usfm": "ZEP",
+        "source_name": "Profecia de Sofonias"
+      },
+      {
+        "usfm": "HAG",
+        "source_name": "Profecia de Ageu"
+      },
+      {
+        "usfm": "ZEC",
+        "source_name": "Profecia de Zacarias"
+      },
+      {
+        "usfm": "MAL",
+        "source_name": "Profecia de Malaquias"
+      },
+      {
+        "usfm": "MAT",
+        "source_name": "Evangelho segundo S. Mateus"
+      },
+      {
+        "usfm": "MRK",
+        "source_name": "Evangelho segundo S. Marcos"
+      },
+      {
+        "usfm": "LUK",
+        "source_name": "Evangelho segundo S. Lucas"
+      },
+      {
+        "usfm": "JHN",
+        "source_name": "Evangelho segundo S. João"
+      },
+      {
+        "usfm": "ACT",
+        "source_name": "Atos dos Apóstolos"
+      },
+      {
+        "usfm": "ROM",
+        "source_name": "Epístola aos Romanos"
+      },
+      {
+        "usfm": "1CO",
+        "source_name": "Primeira Epístola aos Coríntios"
+      },
+      {
+        "usfm": "2CO",
+        "source_name": "Segunda Epístola aos Coríntios"
+      },
+      {
+        "usfm": "GAL",
+        "source_name": "Epístola aos Galatas"
+      },
+      {
+        "usfm": "EPH",
+        "source_name": "Epístola aos Efésios"
+      },
+      {
+        "usfm": "PHP",
+        "source_name": "Epístola aos Filipenses"
+      },
+      {
+        "usfm": "COL",
+        "source_name": "Epístola aos Colossenses"
+      },
+      {
+        "usfm": "1TH",
+        "source_name": "Primeira Epístola aos Tessalonicenses"
+      },
+      {
+        "usfm": "2TH",
+        "source_name": "Segunda Epístola aos Tessalonicenses"
+      },
+      {
+        "usfm": "1TI",
+        "source_name": "Primeira Epístola a Timóteo"
+      },
+      {
+        "usfm": "2TI",
+        "source_name": "Segunda Epístola a Timóteo"
+      },
+      {
+        "usfm": "TIT",
+        "source_name": "Epístola a Títo"
+      },
+      {
+        "usfm": "PHM",
+        "source_name": "Epístola a Filémon"
+      },
+      {
+        "usfm": "HEB",
+        "source_name": "Epístola aos Hebreus"
+      },
+      {
+        "usfm": "JAS",
+        "source_name": "Epístola de S. Tiago"
+      },
+      {
+        "usfm": "1PE",
+        "source_name": "Primeira Epístola de S. Pedro"
+      },
+      {
+        "usfm": "2PE",
+        "source_name": "Segunda Epístola de S. Pedro"
+      },
+      {
+        "usfm": "1JN",
+        "source_name": "Primeira Epístola de S. João"
+      },
+      {
+        "usfm": "2JN",
+        "source_name": "Segunda Epístolas de S. João"
+      },
+      {
+        "usfm": "3JN",
+        "source_name": "Terceira Epístolas de S. João"
+      },
+      {
+        "usfm": "JUD",
+        "source_name": "Epístola de S. Judas"
+      },
+      {
+        "usfm": "REV",
+        "source_name": "Apocalipse de S. João"
+      }
+    ],
+    "ave_maria": [
+      {
+        "usfm": "GEN",
+        "section": "antigoTestamento",
+        "source_name": "Gênesis"
+      },
+      {
+        "usfm": "EXO",
+        "section": "antigoTestamento",
+        "source_name": "Êxodo"
+      },
+      {
+        "usfm": "LEV",
+        "section": "antigoTestamento",
+        "source_name": "Levítico"
+      },
+      {
+        "usfm": "NUM",
+        "section": "antigoTestamento",
+        "source_name": "Números"
+      },
+      {
+        "usfm": "DEU",
+        "section": "antigoTestamento",
+        "source_name": "Deuteronômio"
+      },
+      {
+        "usfm": "JOS",
+        "section": "antigoTestamento",
+        "source_name": "Josué"
+      },
+      {
+        "usfm": "JDG",
+        "section": "antigoTestamento",
+        "source_name": "Juízes"
+      },
+      {
+        "usfm": "RUT",
+        "section": "antigoTestamento",
+        "source_name": "Rute"
+      },
+      {
+        "usfm": "1SA",
+        "section": "antigoTestamento",
+        "source_name": "I Samuel"
+      },
+      {
+        "usfm": "2SA",
+        "section": "antigoTestamento",
+        "source_name": "II Samuel"
+      },
+      {
+        "usfm": "1KI",
+        "section": "antigoTestamento",
+        "source_name": "I Reis"
+      },
+      {
+        "usfm": "2KI",
+        "section": "antigoTestamento",
+        "source_name": "II Reis"
+      },
+      {
+        "usfm": "1CH",
+        "section": "antigoTestamento",
+        "source_name": "I Crônicas"
+      },
+      {
+        "usfm": "2CH",
+        "section": "antigoTestamento",
+        "source_name": "II Crônicas"
+      },
+      {
+        "usfm": "EZR",
+        "section": "antigoTestamento",
+        "source_name": "Esdras"
+      },
+      {
+        "usfm": "NEH",
+        "section": "antigoTestamento",
+        "source_name": "Neemias"
+      },
+      {
+        "usfm": "TOB",
+        "section": "antigoTestamento",
+        "source_name": "Tobias"
+      },
+      {
+        "usfm": "JDT",
+        "section": "antigoTestamento",
+        "source_name": "Judite"
+      },
+      {
+        "usfm": "EST",
+        "section": "antigoTestamento",
+        "source_name": "Ester"
+      },
+      {
+        "usfm": "JOB",
+        "section": "antigoTestamento",
+        "source_name": "Jó"
+      },
+      {
+        "usfm": "PSA",
+        "section": "antigoTestamento",
+        "source_name": "Salmos"
+      },
+      {
+        "usfm": "1MA",
+        "section": "antigoTestamento",
+        "source_name": "I Macabeus"
+      },
+      {
+        "usfm": "2MA",
+        "section": "antigoTestamento",
+        "source_name": "II Macabeus"
+      },
+      {
+        "usfm": "PRO",
+        "section": "antigoTestamento",
+        "source_name": "Provérbios"
+      },
+      {
+        "usfm": "ECC",
+        "section": "antigoTestamento",
+        "source_name": "Eclesiastes"
+      },
+      {
+        "usfm": "SNG",
+        "section": "antigoTestamento",
+        "source_name": "Cântico dos Cânticos"
+      },
+      {
+        "usfm": "WIS",
+        "section": "antigoTestamento",
+        "source_name": "Sabedoria"
+      },
+      {
+        "usfm": "SIR",
+        "section": "antigoTestamento",
+        "source_name": "Eclesiástico"
+      },
+      {
+        "usfm": "ISA",
+        "section": "antigoTestamento",
+        "source_name": "Isaías"
+      },
+      {
+        "usfm": "JER",
+        "section": "antigoTestamento",
+        "source_name": "Jeremias"
+      },
+      {
+        "usfm": "LAM",
+        "section": "antigoTestamento",
+        "source_name": "Lamentações"
+      },
+      {
+        "usfm": "BAR",
+        "section": "antigoTestamento",
+        "source_name": "Baruc"
+      },
+      {
+        "usfm": "EZK",
+        "section": "antigoTestamento",
+        "source_name": "Ezequiel"
+      },
+      {
+        "usfm": "DAN",
+        "section": "antigoTestamento",
+        "source_name": "Daniel"
+      },
+      {
+        "usfm": "HOS",
+        "section": "antigoTestamento",
+        "source_name": "Oséias"
+      },
+      {
+        "usfm": "JOL",
+        "section": "antigoTestamento",
+        "source_name": "Joel"
+      },
+      {
+        "usfm": "AMO",
+        "section": "antigoTestamento",
+        "source_name": "Amós"
+      },
+      {
+        "usfm": "OBA",
+        "section": "antigoTestamento",
+        "source_name": "Abdias"
+      },
+      {
+        "usfm": "JON",
+        "section": "antigoTestamento",
+        "source_name": "Jonas"
+      },
+      {
+        "usfm": "MIC",
+        "section": "antigoTestamento",
+        "source_name": "Miquéias"
+      },
+      {
+        "usfm": "NAM",
+        "section": "antigoTestamento",
+        "source_name": "Naum"
+      },
+      {
+        "usfm": "HAB",
+        "section": "antigoTestamento",
+        "source_name": "Habacuc"
+      },
+      {
+        "usfm": "ZEP",
+        "section": "antigoTestamento",
+        "source_name": "Sofonias"
+      },
+      {
+        "usfm": "HAG",
+        "section": "antigoTestamento",
+        "source_name": "Ageu"
+      },
+      {
+        "usfm": "ZEC",
+        "section": "antigoTestamento",
+        "source_name": "Zacarias"
+      },
+      {
+        "usfm": "MAL",
+        "section": "antigoTestamento",
+        "source_name": "Malaquias"
+      },
+      {
+        "usfm": "MAT",
+        "section": "novoTestamento",
+        "source_name": "São Mateus"
+      },
+      {
+        "usfm": "MRK",
+        "section": "novoTestamento",
+        "source_name": "São Marcos"
+      },
+      {
+        "usfm": "LUK",
+        "section": "novoTestamento",
+        "source_name": "São Lucas"
+      },
+      {
+        "usfm": "JHN",
+        "section": "novoTestamento",
+        "source_name": "São João"
+      },
+      {
+        "usfm": "ACT",
+        "section": "novoTestamento",
+        "source_name": "Atos dos Apóstolos"
+      },
+      {
+        "usfm": "ROM",
+        "section": "novoTestamento",
+        "source_name": "Romanos"
+      },
+      {
+        "usfm": "1CO",
+        "section": "novoTestamento",
+        "source_name": "I Coríntios"
+      },
+      {
+        "usfm": "2CO",
+        "section": "novoTestamento",
+        "source_name": "II Coríntios"
+      },
+      {
+        "usfm": "GAL",
+        "section": "novoTestamento",
+        "source_name": "Gálatas"
+      },
+      {
+        "usfm": "EPH",
+        "section": "novoTestamento",
+        "source_name": "Efésios"
+      },
+      {
+        "usfm": "PHP",
+        "section": "novoTestamento",
+        "source_name": "Filipenses"
+      },
+      {
+        "usfm": "COL",
+        "section": "novoTestamento",
+        "source_name": "Colossenses"
+      },
+      {
+        "usfm": "1TH",
+        "section": "novoTestamento",
+        "source_name": "I Tessalonicenses"
+      },
+      {
+        "usfm": "2TH",
+        "section": "novoTestamento",
+        "source_name": "II Tessalonicenses"
+      },
+      {
+        "usfm": "1TI",
+        "section": "novoTestamento",
+        "source_name": "I Timóteo"
+      },
+      {
+        "usfm": "2TI",
+        "section": "novoTestamento",
+        "source_name": "II Timóteo"
+      },
+      {
+        "usfm": "TIT",
+        "section": "novoTestamento",
+        "source_name": "Tito"
+      },
+      {
+        "usfm": "PHM",
+        "section": "novoTestamento",
+        "source_name": "Filêmon"
+      },
+      {
+        "usfm": "HEB",
+        "section": "novoTestamento",
+        "source_name": "Hebreus"
+      },
+      {
+        "usfm": "JAS",
+        "section": "novoTestamento",
+        "source_name": "São Tiago"
+      },
+      {
+        "usfm": "1PE",
+        "section": "novoTestamento",
+        "source_name": "I São Pedro"
+      },
+      {
+        "usfm": "2PE",
+        "section": "novoTestamento",
+        "source_name": "II São Pedro"
+      },
+      {
+        "usfm": "1JN",
+        "section": "novoTestamento",
+        "source_name": "I São João"
+      },
+      {
+        "usfm": "2JN",
+        "section": "novoTestamento",
+        "source_name": "II São João"
+      },
+      {
+        "usfm": "3JN",
+        "section": "novoTestamento",
+        "source_name": "III São João"
+      },
+      {
+        "usfm": "JUD",
+        "section": "novoTestamento",
+        "source_name": "São Judas"
+      },
+      {
+        "usfm": "REV",
+        "section": "novoTestamento",
+        "source_name": "Apocalipse"
+      }
+    ]
+  }
+}

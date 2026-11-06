@@ -1,0 +1,19 @@
+{
+  "name": "catechism-cross-reference-etl",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ETL Bíblia ⇄ Catecismo: consolida traduções católicas e o CIC em JSONs estáticos com referências cruzadas.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build:data": "node src/index.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "7.0.2"
+  }
+}

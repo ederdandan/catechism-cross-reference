@@ -1,0 +1,29 @@
+{
+  "$comment": [
+    "Esquema canônico do projeto (spec, seção 4): numeração 'org' (hebraica) do org.vrs,",
+    "exceto Daniel, Ester e Baruc, que seguem a numeração católica com as partes gregas dentro do livro.",
+    "books: substitui a linha do org.vrs para esses livros (versículo máximo por capítulo).",
+    "from_org: converte referências dos livros separados do org (S3Y, SUS, BEL, LJE) e do Dn 3 hebraico para o canônico."
+  ],
+  "books": {
+    "DAN": {
+      "chapters": [21, 49, 100, 34, 30, 29, 28, 27, 27, 21, 45, 13, 64, 42],
+      "note": "org nos caps. 1-12, com Dn 3,24-90 = Cântico dos três jovens (S3Y) e Dn 3,91-100 = org Dn 3,24-33; Dn 13 = Susana (SUS); Dn 14 = Bel e o Dragão (BEL)."
+    },
+    "EST": {
+      "chapters": [22, 23, 15, 17, 14, 14, 10, 17, 32, 13, 12, 6, 18, 19, 19, 24],
+      "note": "Ester da Vulgata (VUL83, linha comentada no vul.vrs): acréscimos gregos em Est 10,4-16,24. Est 1,1-10,3 = org."
+    },
+    "BAR": {
+      "chapters": [22, 35, 38, 37, 9, 72],
+      "note": "Baruc com 6 capítulos: Br 6 = Carta de Jeremias (LJE no org)."
+    }
+  },
+  "from_org": [
+    { "org": "DAN 3:24-33", "canonical": "DAN 3:91-100" },
+    { "org": "S3Y 1:1-67", "canonical": "DAN 3:24-90" },
+    { "org": "SUS 1:1-64", "canonical": "DAN 13:1-64" },
+    { "org": "BEL 1:1-42", "canonical": "DAN 14:1-42" },
+    { "org": "LJE 1:1-72", "canonical": "BAR 6:1-72" }
+  ]
+}

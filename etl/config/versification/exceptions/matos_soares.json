@@ -1,0 +1,8 @@
+{
+  "$comment": "Matos Soares: Vulgata (spec 6.2). base = tabela por livro; rules = exceções (from na numeração da fonte, to na canônica). RASCUNHO — revisar.",
+  "base": {
+    "default": "vul",
+    "books": { "EST": "canonical" }
+  },
+  "rules": []
+}
