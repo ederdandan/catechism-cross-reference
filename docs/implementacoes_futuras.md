@@ -1,7 +1,36 @@
 # Implementações futuras — estado do ETL e o que falta
 
 Registro de 2026-11-06, para retomar o trabalho depois. Fonte da verdade continua sendo
-[`spec_do_pipeline_de_etl.md`](spec_do_pipeline_de_etl.md) (revisão 3).
+[`spec_do_pipeline_de_etl.md`](spec_do_pipeline_de_etl.md) (revisão 4).
+
+## 0. Entrega atual: Catecismo por capítulo bíblico ✅
+
+Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.E (revisão 4).
+
+* **Saída:** `npm run build:data` gera `etl/output/catechism_by_chapter.json` (~982 KB).
+  * Tem 334 capítulos de 50 livros e 1.337 citações em 809 parágrafos.
+  * Cada entrada tem `book`, `abbreviation`, `usfm`, `chapter` e
+    `catechism_paragraphs: [{ paragraph, text }]`.
+* **Fidelidade:** etapa [4] do build. Os 1.250 textos são comparados com a fonte pelo verificador
+  independente, e qualquer divergência interrompe o build.
+* **Revisado pelo usuário em 2026-11-06:**
+  * correções de sigla (§§320, 455, 371);
+  * as 24 formas irregulares aceitas no capítulo;
+  * a numeração hebraica dos Salmos, conferida nos dados.
+* **Código:**
+  * `src/catechism/paragraphs.ts`: filtros da seção 7;
+  * `src/catechism/citations.ts`: parser da seção 8;
+  * `src/catechism/index.ts`: índice e manifesto;
+  * `config/catechism.json`;
+  * `test/catechism.test.ts`.
+* **Limitações conhecidas** (não são erros):
+  * citações só de nota de rodapé ficam de fora, porque a fonte não tem o conteúdo das notas;
+  * só valem citações entre parênteses;
+  * os textos levam as imperfeições da fonte (marcadores `(N)`, títulos embutidos, notas vazadas,
+    `U+00AD`), e o consumidor deve lidar com elas.
+* **Próximos passos possíveis desta linha:**
+  * notas de rodapé, com uma nova fonte (vatican.va);
+  * granularidade por versículo, que exige terminar a F3 se for incluir o texto bíblico.
 
 ## 1. Estado atual
 
@@ -10,15 +39,18 @@ Registro de 2026-11-06, para retomar o trabalho depois. Fonte da verdade continu
 | F0 | Estrutura `etl/`, Node 24 + TypeScript (type stripping), `tsc --noEmit`, `node:test` | ✅ concluída |
 | F1 | Leitores estritos das fontes (UTF-8 fatal, só o BOM do arquivo removido, conjunto exato de chaves), inventário (`reports/inventory.json`) | ✅ concluída |
 | F2 | Verificador de fidelidade independente (`test/fidelity/`, sem importar `src/`) e guardas estáticos | ✅ concluída |
-| F3 | Versificação: tabelas Paratext/UBS, canônico, alinhamento, conferência | 🔶 em andamento (código pronto; faltam as regras de exceção) |
-| F4 | Catecismo: filtros e parser de citações | ⏳ pendente |
-| F5 | Exportação dos JSONs e manifesto de proveniência | ⏳ pendente |
-| F6 | Build completo com teste de fidelidade obrigatório | ⏳ pendente |
+| F3 | Versificação: tabelas Paratext/UBS, canônico, alinhamento, conferência | 🔶 em andamento (código pronto; faltam as regras de exceção). Não é necessária para a entrega da seção 0. |
+| F4 | Catecismo: filtros e parser de citações | ✅ para o nível de capítulo (seção 0); a posição dos repetidos (vizinho n−1) só importa na saída completa |
+| F5 | Exportação dos JSONs e manifesto de proveniência | 🔶 manifesto pronto e usado na seção 0; faltam as visões completas da spec (5.A–5.D) |
+| F6 | Build completo com teste de fidelidade obrigatório | 🔶 o build já roda o teste de fidelidade sobre `output/`; falta a saída completa |
 
-Na data deste registro, `npm run typecheck` passa e `npm test` dá 44/44.
+Na data deste registro, `npm run typecheck` passa e `npm test` dá 50/50.
 
-`npm run build:data` hoje executa só os passos [1] (inventário) e [2] (versificação/conferência,
-grava `reports/versification.json`). Ainda não gera nada em `output/`.
+`npm run build:data` executa:
+1. inventário;
+2. versificação/conferência (só relatório);
+3. Catecismo por capítulo, que grava em `output/`;
+4. teste de fidelidade.
 
 ## 2. Decisões pendentes (do usuário)
 
@@ -150,7 +182,10 @@ Ficaram de fora os scripts exploratórios da CNBB (retirada na revisão 3) e o g
 
 ## 8. Para retomar
 
-* **Branch:** todo o trabalho está na `main` (commits `39841c2` em diante). Nenhum push foi feito.
+* **Branches:**
+  * `main` tem as fases F0–F3 parciais (commits `39841c2` e `247526c`);
+  * `feat/catecismo-por-referencia-biblica` tem a entrega da seção 0.
+  * Nenhum push foi feito.
 * **Passos:**
   1. Ler a spec e este arquivo.
   2. Responder às decisões da seção 2.

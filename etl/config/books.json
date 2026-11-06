@@ -372,7 +372,7 @@
     },
     {
       "usfm": "MAT",
-      "name": "São Mateus",
+      "name": "Mateus",
       "testament": "NT",
       "cic_abbreviations": [
         "Mt"
@@ -380,7 +380,7 @@
     },
     {
       "usfm": "MRK",
-      "name": "São Marcos",
+      "name": "Marcos",
       "testament": "NT",
       "cic_abbreviations": [
         "Mc"
@@ -388,7 +388,7 @@
     },
     {
       "usfm": "LUK",
-      "name": "São Lucas",
+      "name": "Lucas",
       "testament": "NT",
       "cic_abbreviations": [
         "Lc"
@@ -396,7 +396,7 @@
     },
     {
       "usfm": "JHN",
-      "name": "São João",
+      "name": "João",
       "testament": "NT",
       "cic_abbreviations": [
         "Jo"

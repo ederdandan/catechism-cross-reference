@@ -1,0 +1,9 @@
+{
+  "$comment": "Ingestão do Catecismo (spec, seções 7 e 8). Os textos nunca são alterados: estes dados só orientam a leitura das citações.",
+  "note_only_paragraphs": [112, 113, 114, 164, 179, 827, 936, 937, 1191, 1193, 1486, 1527, 1528, 1531],
+  "abbreviation_fixes": [
+    { "paragraph": 320, "abbreviation": "He", "usfm": "HEB", "note": "variante de Heb: «o Filho tudo sustenta com a sua palavra poderosa» (Hb 1, 3)" },
+    { "paragraph": 455, "abbreviation": "1 Co", "usfm": "1CO", "note": "variante de 1 Cor: «Ninguém pode dizer \"Jesus é Senhor\"…» (1 Cor 12, 3)" },
+    { "paragraph": 371, "abbreviation": "Ga", "usfm": "GEN", "note": "erro tipográfico da fonte: «osso dos meus ossos e carne da minha carne» é Gn 2, 23 (Gálatas é Gl e tem 6 capítulos)" }
+  ]
+}

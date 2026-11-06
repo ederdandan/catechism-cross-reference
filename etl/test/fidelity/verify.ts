@@ -20,8 +20,8 @@ import { RawSources, readJsonStrict, type Locator, type RawSourceId, type RawSou
 /** Campos da saída que carregam texto da fonte e por isso precisam de proveniência. */
 export const SOURCE_TEXT_KEYS: ReadonlySet<string> = new Set(["text", "part_title", "chapter_title"]);
 
-/** Visões da saída em que cada texto da fonte deve aparecer exatamente uma vez. */
-const REQUIRED_VIEWS: Record<RawSourceId, readonly string[]> = {
+/** Visões da saída em que cada texto da fonte deve aparecer exatamente uma vez (saída completa da spec). */
+export const REQUIRED_VIEWS: Record<RawSourceId, readonly string[]> = {
   matos_soares: ["bible"],
   ave_maria: ["bible"],
   catechism: ["catechism", "catechism/full.json"],
@@ -116,7 +116,18 @@ function collectTextFields(doc: unknown, path: (string | number)[] = [], out: st
   return out;
 }
 
-export function verifyFidelity(opts: { sources: RawSourcePaths | RawSources; outputDir: string; manifest: Manifest }): FidelityResult {
+/**
+ * `requiredViews` troca a exigência de cobertura (3) para saídas parciais — por exemplo, o
+ * índice por capítulo, que só traz os parágrafos citados e repete um parágrafo em cada
+ * capítulo que ele cita. As verificações 1, 2 e 4 valem sempre.
+ */
+export function verifyFidelity(opts: {
+  sources: RawSourcePaths | RawSources;
+  outputDir: string;
+  manifest: Manifest;
+  requiredViews?: Record<RawSourceId, readonly string[]>;
+}): FidelityResult {
+  const requiredViews = opts.requiredViews ?? REQUIRED_VIEWS;
   const raw = opts.sources instanceof RawSources ? opts.sources : new RawSources(opts.sources);
   const result: FidelityResult = { ok: false, checked: 0, divergences: [], unmanifested: [], missing: [], duplicated: [] };
 
@@ -165,7 +176,7 @@ export function verifyFidelity(opts: { sources: RawSourcePaths | RawSources; out
 
   // Todo texto não vazio da fonte aparece exatamente uma vez em cada visão obrigatória.
   for (const rec of raw.coverage) {
-    for (const view of REQUIRED_VIEWS[rec.source]) {
+    for (const view of requiredViews[rec.source]) {
       const n = seenPerView.get(view)?.get(rec.key) ?? 0;
       if (n === 0) result.missing.push({ key: rec.key, view });
       else if (n > 1) result.duplicated.push({ key: rec.key, view, count: n });

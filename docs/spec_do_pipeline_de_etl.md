@@ -3,6 +3,8 @@
 > **Revisão 2 — 2026-11-06.** Atualizada após análise das fontes reais. As decisões tomadas estão marcadas como **[DECIDIDO]**; observações e escopo futuro estão na seção 11.
 >
 > **Revisão 3 — 2026-11-06 [DECIDIDO].** A tradução CNBB foi retirada do projeto (a fonte tinha texto perdido e deslocado); restam Matos Soares e Ave-Maria.
+>
+> **Revisão 4 — 2026-11-06 [DECIDIDO].** Primeira entrega reduzida: o índice **Catecismo por capítulo bíblico** (seção 5.E), gerado só a partir do CIC, sem depender do alinhamento das traduções. Os evangelhos passam a se chamar Mateus, Marcos, Lucas e João (sem "São"; seção 9).
 
 ## 1. Visão Geral
 
@@ -146,6 +148,32 @@ Regras:
 * **`etl/output/books.json`** — os 73 livros: USFM, nome padronizado, testamento, capítulos e versículos por capítulo (numeração canônica).
 * Todos os JSONs gerados incluem `"schema_version"` no nível raiz (ou em `etl/output/meta.json`).
 
+### E. Catecismo por capítulo bíblico (`etl/output/catechism_by_chapter.json`) **[DECIDIDO — revisão 4]**
+
+Lista, na ordem dos livros (seção 9) e dos capítulos, de todo capítulo citado por pelo menos um parágrafo do CIC:
+
+```json
+[
+  {
+    "book": "Mateus",
+    "abbreviation": "Mt",
+    "usfm": "MAT",
+    "chapter": 16,
+    "catechism_paragraphs": [
+      { "paragraph": 153, "text": "<texto do parágrafo exatamente como na fonte>" },
+      { "paragraph": 424, "text": "..." }
+    ]
+  }
+]
+```
+
+* `book`: nome padronizado; `abbreviation`: sigla como o CIC cita (a primeira da seção 9; o CIC usa só ela: `Act` 54×, `Rm` 100×); `chapter`: numeração canônica (seção 4). Nos Salmos o CIC cita na numeração hebraica (conferido: 33 de 33 citações com trecho literal comparável; nenhuma na Vulgata).
+* `catechism_paragraphs`: parágrafos únicos, em ordem crescente, que citam o capítulo segundo as seções 7 e 8. O mesmo parágrafo aparece em cada capítulo que cita.
+* `text`: a string da fonte, sem nenhuma alteração (seção 2) — inclusive marcadores de nota `(N)`, títulos de seção embutidos no fim, blocos de notas vazados e `U+00AD`.
+* **Fidelidade:** cada `text` tem entrada no manifesto `etl/reports/provenance.json`; o `build:data` roda o verificador independente sobre `etl/output/` e falha em qualquer divergência. Como a saída é parcial e repete parágrafos por capítulo, não se exige a cobertura "cada texto exatamente uma vez" (2.1, item 3); as demais verificações valem.
+* **Cobertura:** só citações do corpo do texto (seção 7.6). Citações que estão apenas em notas de rodapé (ex.: §§881, 882 e 936 para Mt 16) não entram nesta versão.
+* **Correções de sigla** (`etl/config/catechism.json`, por parágrafo, revisadas pelo usuário): §320 `He` → Heb; §455 `1 Co` → 1 Cor; §371 `Ga 2, 23` → Gn 2, 23 (erro tipográfico da fonte). Formas irregulares da fonte com capítulo inequívoco (`I Jo`, `Jo14`, `Act 4, l2`…) são aceitas no capítulo e listadas em `etl/reports/catechism_citations.json`.
+
 ---
 
 ## 6. Tabela de Conversão de Versificação
@@ -280,10 +308,10 @@ Siglas do CIC observadas na fonte (incluir variantes com e sem espaço após o n
 | HAG | Ageu | Ag* | AT |
 | ZEC | Zacarias | Zc | AT |
 | MAL | Malaquias | Ml | AT |
-| MAT | São Mateus | Mt | NT |
-| MRK | São Marcos | Mc | NT |
-| LUK | São Lucas | Lc | NT |
-| JHN | São João | Jo | NT |
+| MAT | Mateus | Mt | NT |
+| MRK | Marcos | Mc | NT |
+| LUK | Lucas | Lc | NT |
+| JHN | João | Jo | NT |
 | ACT | Atos dos Apóstolos | Act / At* | NT |
 | ROM | Romanos | Rm / Rom | NT |
 | 1CO | 1 Coríntios | 1 Cor | NT |
