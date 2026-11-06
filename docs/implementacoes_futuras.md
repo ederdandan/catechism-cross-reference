@@ -75,8 +75,8 @@ grava `reports/versification.json`). Ainda não gera nada em `output/`.
   * Registros sem letras na fonte, mantidos como estão:
     * Ave-Maria JOS 19:12-17 = `"[]"`;
     * Matos Soares 2SA 18:25 e LAM 5:5 = `"."`.
-* **Método usado para gerar propostas** (os scripts ficaram só no scratchpad da sessão; refazer
-  se for preciso):
+* **Método usado para gerar propostas** (implementado em `etl/tools/propose.mjs` e
+  `etl/tools/merge.cjs`; ver a seção 7):
   * Programação dinâmica monótona por capítulo canônico, que alinha os registros da tradução T
     aos versículos canônicos.
   * Pontuação: quanto dos tokens da outra tradução (referência) aparece no registro.
@@ -128,10 +128,33 @@ grava `reports/versification.json`). Ainda não gera nada em `output/`.
 * Relatórios finais em `reports/`.
 * Revisar a seção de direitos autorais (spec, 11) antes de publicar a base.
 
-## 7. Para retomar
+## 7. Ferramentas de apoio (`etl/tools/`)
 
-1. Ler a spec e este arquivo.
-2. Responder às decisões da seção 2.
-3. Rodar `npm install`, `npm run typecheck`, `npm test` e `npm run build:data` em `etl/` e
-   conferir os números de `reports/versification.json`.
-4. Continuar a F3 pelas regras de exceção.
+Scripts de análise usados na F3. Não fazem parte do pipeline nem de `build:data`, e não ficam
+sob os guardas estáticos de `src/`/`test/`. Também não estão no `tsconfig`, porque são `.mjs`/`.cjs`.
+Só leem as fontes. A única exceção é o `merge.cjs`, que grava nos arquivos de exceção do projeto.
+Rodar de dentro de `etl/`.
+
+| Script | Uso | O que faz |
+|---|---|---|
+| `propose.mjs` | `node tools/propose.mjs <traducao> [USFM ...] > propostas.json` | Gera as propostas de regras (seção 3) e imprime JSON; não grava nada. `ALL=1` inclui capítulos só com suspeita lexical. |
+| `merge.cjs` | `node tools/merge.cjs <traducao> propostas.json <referencia>` | **Grava** as propostas em `config/versification/exceptions/<traducao>.json` com `confidence` e `note`. Rodar só com aprovação, e depois `npm run build:data` para conferir. |
+| `exp-vulgate-deutero.mjs` | `[BOOKS=TOB,JDT,SIR] node tools/exp-vulgate-deutero.mjs` | Experimento da decisão 2 da seção 2: canônico desses livros = vul.vrs e conferência resultante. Grava só `reports/canonical-exp.json`. |
+| `peek.mjs` | `[SRC=ave_maria] [W=90] node tools/peek.mjs "JOS 7:4-5" ...` | Mostra os versículos das fontes como estão (texto cortado em `W` caracteres). |
+| `sim.mjs` | `node tools/sim.mjs <A> <B> <USFM> <capA> [capB]` | Similaridade lexical versículo a versículo entre duas traduções; `<<<` marca deslocamento provável. |
+| `summ.mjs` | `node tools/summ.mjs reports/versification.json [traducao]` | Resumo por livro das pendências da conferência (lacunas `m`, colisões `c`, lexicais `L@deslocamento`). |
+| `escape-invisible.cjs` | `node tools/escape-invisible.cjs <arquivos...>` | Troca caracteres invisíveis literais (U+00AD, U+00A0, U+FEFF…) por escapes `\uXXXX` em código e testes. Necessário porque as ferramentas de escrita do agente decodificam esses escapes. **Nunca usar em fontes nem em saída.** |
+
+Ficaram de fora os scripts exploratórios da CNBB (retirada na revisão 3) e o gerador do
+`config/books.json`, que dependia do banco da CNBB. O `books.json` já está versionado.
+
+## 8. Para retomar
+
+* **Branch:** todo o trabalho está na `main` (commits `39841c2` em diante). Nenhum push foi feito.
+* **Passos:**
+  1. Ler a spec e este arquivo.
+  2. Responder às decisões da seção 2.
+  3. Em `etl/`, rodar `npm install`, `npm run typecheck`, `npm test` e `npm run build:data`, e
+     conferir os números de `reports/versification.json`.
+  4. Continuar a F3 pelas regras de exceção: `tools/propose.mjs`, depois revisão, depois
+     `tools/merge.cjs`, depois a conferência.
