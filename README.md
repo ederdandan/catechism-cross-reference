@@ -37,15 +37,15 @@ Essa regra é garantida em três camadas:
 | **Guardas estáticos** (`test/static.test.ts`) | Em `src/` são proibidos `trim`, `normalize`, `replace`, `toLowerCase`, `toUpperCase`, `padStart`/`padEnd` etc. O uso legítimo, que nunca é sobre texto da fonte, exige o comentário `// fidelity-ok: <motivo>`. Caracteres invisíveis literais são proibidos em `src/` e `test/`. |
 | **Teste de fidelidade** (`test/fidelity/`) | Um verificador **independente**, que não importa nada de `src/`, relê a fonte sozinho. Cada texto da saída tem uma entrada no manifesto de proveniência, e o verificador compara caractere por caractere. Divergência, texto sem proveniência, caminho inexistente ou texto vindo do Prólogo fazem o **build falhar**. |
 
-A fonte fica em `C:\Users\ederd\estudo\estudoCatolico\` e é **somente leitura**: o ETL nunca grava nada
-lá.
+A fonte é baixada do GitHub num commit fixo e conferida por **SHA-256** antes de qualquer leitura
+(seção 4). A cópia local em `etl/.cache/` é somente leitura: o ETL nunca a altera.
 
 ---
 
 ## 2. Entrega atual: Catecismo por capítulo bíblico
 
 O arquivo `etl/output/catechism_by_chapter.json` (~1,1 MB) é uma lista, na ordem canônica dos livros e
-capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CIC (spec, seção 5.E).
+capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CIC (spec, seção 5).
 
 ```json
 [
@@ -99,24 +99,31 @@ runtime; só `typescript` e `@types/node` para a checagem de tipos.
 ```sh
 cd etl
 npm install
+npm run fetch:sources  # baixa a fonte para .cache/ e confere o SHA-256 (test e build também fazem)
 npm run typecheck    # tsc --noEmit
 npm test             # node:test
 npm run build:data   # gera output/ e reports/
+npm run check:data   # refaz o build e falha se output/ difere do que está no git
 ```
 
 O `build:data` executa três etapas:
 
 ```
-[1] Leitura do Catecismo + inventário     → reports/inventory.json
+[1] Fonte (GitHub + SHA-256) e inventário → reports/inventory.json
 [2] Catecismo por referência bíblica      → output/catechism_by_chapter.json
                                             reports/catechism_citations.json
                                             reports/provenance.json
 [3] Teste de fidelidade sobre output/     → falha (exit 1) se houver divergência
 ```
 
-A pasta `output/` é apagada e recriada a cada build. `output/` e `reports/` não são versionados.
+A pasta `output/` é apagada e recriada a cada build.
 
-O caminho da fonte fica em `etl/config/sources.json`.
+**Versionamento:** `output/` fica no git, para quem consome a base usar o arquivo direto do repositório
+e ver no histórico o que mudou entre versões. Todo commit que altera o ETL ou a config deve levar a
+saída regenerada; `npm run check:data` confere isso. O `.gitattributes` fixa fim de linha LF na
+saída, para os bytes não mudarem no checkout em Windows. `reports/` não é versionado.
+
+A origem da fonte fica em `etl/config/sources.json` (repositório, commit, caminho e SHA-256).
 
 ---
 
@@ -124,7 +131,15 @@ O caminho da fonte fica em `etl/config/sources.json`.
 
 | Fonte | Repositório | Commit usado | Conteúdo |
 |---|---|---|---|
-| **Catecismo** | [ntwkst/catecismo-da-igreja-catolica](https://github.com/ntwkst/catecismo-da-igreja-catolica) → `catecismo.json` | `97af80f` (2026-08-25) | CIC em português, texto do [vatican.va](https://www.vatican.va/archive/cathechism_po/index_new/prima-pagina-cic_po.html). 2.865 parágrafos em partes e capítulos. |
+| **Catecismo** | [ntwkst/catecismo-da-igreja-catolica](https://github.com/ntwkst/catecismo-da-igreja-catolica) → `catecismo.json` | `97af80f` (2026-08-25), SHA-256 `f1db1c70…` | CIC em português, texto do [vatican.va](https://www.vatican.va/archive/cathechism_po/index_new/prima-pagina-cic_po.html). 2.865 parágrafos em partes e capítulos. |
+
+**Como a fonte é obtida:** `etl/config/sources.json` fixa o repositório, o commit completo, o caminho
+do arquivo e o SHA-256 dos bytes. O ETL baixa
+`https://raw.githubusercontent.com/ntwkst/catecismo-da-igreja-catolica/<commit>/catecismo.json` para
+`etl/.cache/sources/<commit>/` e recusa o arquivo se o hash não bater. Assim o build não depende de
+nenhuma pasta da máquina, e uma mudança no repositório de origem só muda a saída quando o commit é
+atualizado de propósito. Para atualizar: trocar `commit` e `sha256`, rodar `npm run build:data` e
+revisar o diff da saída.
 
 ### Particularidades da fonte (tratadas, nunca corrigidas no texto)
 
@@ -228,7 +243,7 @@ catechism-cross-reference/
 └── etl/
     ├── package.json · tsconfig.json
     ├── config/
-    │   ├── sources.json               # caminho da fonte do Catecismo (somente leitura)
+    │   ├── sources.json               # origem da fonte: repositório, commit e SHA-256
     │   ├── books.json                 # 73 livros e siglas do CIC
     │   ├── catechism.json             # parágrafos só nota e correções de sigla e de versículo
     │   └── versification/
@@ -245,7 +260,8 @@ catechism-cross-reference/
     │   └── fidelity/                  # verificador de fidelidade independente
     ├── tools/
     │   └── escape-invisible.cjs       # troca caracteres invisíveis literais por escapes no código
-    ├── output/                        # gerado; não versionado
+    ├── output/                        # gerado; versionado
+    ├── .cache/                        # fonte baixada; não versionado
     └── reports/                       # gerado; não versionado
 ```
 

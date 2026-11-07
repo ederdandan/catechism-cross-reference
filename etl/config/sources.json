@@ -1,3 +1,8 @@
 {
-  "catechism": "C:/Users/ederd/estudo/estudoCatolico/catecismo-da-igreja-catolica/catecismo.json"
+  "catechism": {
+    "repository": "https://github.com/ntwkst/catecismo-da-igreja-catolica",
+    "commit": "97af80fdcd68f38e1379ff47bd4393511aa2d56c",
+    "path": "catecismo.json",
+    "sha256": "f1db1c70ce05e23b355b40482f1066a99bbbe49b1373911fc730b14ed9f1bb04"
+  }
 }

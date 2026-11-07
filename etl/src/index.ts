@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { formatFidelityResult, verifyFidelity } from "../test/fidelity/verify.ts";
 import { ETL_ROOT } from "./config.ts";
 import { loadAllSources } from "./sources/index.ts";
+import { fetchSources } from "./sources/fetch.ts";
 import { inventoryCatechism } from "./sources/inventory.ts";
 import { BY_CHAPTER_FILE, runCatechism } from "./catechism/index.ts";
 import { loadCanonical } from "./versification/canonical.ts";
@@ -10,14 +11,16 @@ import { loadCanonical } from "./versification/canonical.ts";
 const REPORTS_DIR = resolve(ETL_ROOT, "reports");
 const OUTPUT_DIR = resolve(ETL_ROOT, "output");
 
-// [1] Leitura da fonte (sem alterar textos) + inventário.
+// [1] Obtenção da fonte (commit fixado + SHA-256), leitura (sem alterar textos) e inventário.
+await fetchSources();
 const src = loadAllSources();
 const catechism = inventoryCatechism(src.catechism);
 mkdirSync(REPORTS_DIR, { recursive: true });
 const reportPath = resolve(REPORTS_DIR, "inventory.json");
-writeFileSync(reportPath, JSON.stringify({ generated_at: new Date().toISOString(), catechism }, null, 2) + "\n", "utf8");
+writeFileSync(reportPath, JSON.stringify({ generated_at: new Date().toISOString(), source: src.origin.catechism, catechism }, null, 2) + "\n", "utf8");
 const c = catechism.outsidePrologue;
 console.log("[1] Leitura do Catecismo");
+console.log(`  fonte ${src.origin.catechism.repository} @ ${src.origin.catechism.commit.slice(0, 7)} · SHA-256 conferido`);
 console.log(
   `  declarado ${catechism.declaredTotal} · ocorrências ${catechism.occurrences} (Prólogo ${catechism.prologueOccurrences})` +
     ` · únicos §${c.min}–§${c.max}: ${c.uniqueParagraphs} · faltando ${c.missingIn26to2865.length} · repetidos ${c.duplicates.map((d) => `§${d.paragraph}×${d.occurrences}`).join(" ")}`,
