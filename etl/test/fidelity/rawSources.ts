@@ -1,15 +1,13 @@
-// Leitor INDEPENDENTE das fontes, usado só pelo teste de fidelidade (spec 2.1).
-// Não importa nada de `src/` (garantido por test/static.test.ts): um erro nos leitores
+// Leitor INDEPENDENTE da fonte, usado só pelo teste de fidelidade (spec 2.1).
+// Não importa nada de `src/` (garantido por test/static.test.ts): um erro no leitor
 // do ETL não pode se auto-validar aqui.
 
 import { readFileSync } from "node:fs";
 
-export type RawSourceId = "matos_soares" | "ave_maria" | "catechism";
+export type RawSourceId = "catechism";
 export type Locator = readonly (string | number)[];
 
 export interface RawSourcePaths {
-  matos_soares: string;
-  ave_maria: string;
   catechism: string;
 }
 
@@ -20,23 +18,21 @@ export function readJsonStrict(path: string): unknown {
   return JSON.parse(s.charCodeAt(0) === 0xfeff ? s.slice(1) : s);
 }
 
-/** Registro de texto da fonte que precisa aparecer na saída. */
+/** Parágrafo do CIC que pode ser exigido numa visão da saída. */
 export interface CoverageRecord {
-  /** Chave de cobertura: um registro bíblico, ou um parágrafo do CIC (as cópias repetidas contam como um). */
+  /** Chave de cobertura: o número do parágrafo (as cópias repetidas contam como um). */
   key: string;
   source: RawSourceId;
   locator: Locator;
 }
 
 export class RawSources {
-  private readonly json: Partial<Record<RawSourceId, unknown>> = {};
-  /** Registros bíblicos com texto não vazio + parágrafos do CIC fora do Prólogo. */
+  private readonly json: Record<RawSourceId, unknown>;
+  /** Parágrafos do CIC fora do Prólogo (uma entrada por número). */
   readonly coverage: CoverageRecord[] = [];
 
   constructor(paths: RawSourcePaths) {
-    this.json.matos_soares = readJsonStrict(paths.matos_soares);
-    this.json.ave_maria = readJsonStrict(paths.ave_maria);
-    this.json.catechism = readJsonStrict(paths.catechism);
+    this.json = { catechism: readJsonStrict(paths.catechism) };
     this.collectCoverage();
   }
 
@@ -52,31 +48,15 @@ export class RawSources {
 
   /** Chave de cobertura de um texto da fonte (ver `CoverageRecord.key`). */
   coverageKey(source: RawSourceId, locator: Locator): string {
-    if (source === "catechism") return `catechism#${String(this.resolve(source, locator, "numero"))}`;
-    return `${source}@${JSON.stringify(locator)}`;
+    return `${source}#${String(this.resolve(source, locator, "numero"))}`;
   }
 
-  /** Para o CIC: o locator aponta para uma ocorrência fora do Prólogo? */
+  /** O locator aponta para uma ocorrência dentro do Prólogo (`numero: 0`)? */
   isPrologue(locator: Locator): boolean {
     return locator[0] === "partes" && this.resolve("catechism", locator.slice(0, 2), "numero") === 0;
   }
 
   private collectCoverage(): void {
-    const push = (source: RawSourceId, locator: Locator) =>
-      this.coverage.push({ key: this.coverageKey(source, locator), source, locator });
-
-    const ms = this.json.matos_soares as { capitulos: { versiculos: { texto: string }[] }[] }[];
-    ms.forEach((b, bi) => b.capitulos.forEach((c, ci) => c.versiculos.forEach((v, vi) => {
-      if (v.texto !== "") push("matos_soares", [bi, "capitulos", ci, "versiculos", vi]);
-    })));
-
-    const am = this.json.ave_maria as Record<string, { capitulos: { versiculos: { texto: string }[] }[] }[]>;
-    for (const section of Object.keys(am)) {
-      am[section]!.forEach((b, bi) => b.capitulos.forEach((c, ci) => c.versiculos.forEach((v, vi) => {
-        if (v.texto !== "") push("ave_maria", [section, bi, "capitulos", ci, "versiculos", vi]);
-      })));
-    }
-
     const cic = this.json.catechism as { partes: { numero: number; capitulos: { paragrafos: { numero: number }[] }[] }[] };
     const seen = new Set<number>();
     cic.partes.forEach((p, pi) => {
@@ -84,7 +64,8 @@ export class RawSources {
       p.capitulos.forEach((c, ci) => c.paragrafos.forEach((g, gi) => {
         if (seen.has(g.numero)) return;
         seen.add(g.numero);
-        push("catechism", ["partes", pi, "capitulos", ci, "paragrafos", gi]);
+        const locator = ["partes", pi, "capitulos", ci, "paragrafos", gi];
+        this.coverage.push({ key: this.coverageKey("catechism", locator), source: "catechism", locator });
       }));
     });
   }

@@ -1,41 +1,31 @@
-// Testa o próprio teste de fidelidade (spec 2.1) com fontes sintéticas: uma saída
-// correta passa; qualquer alteração de caractere, perda, duplicação ou texto sem
-// proveniência faz falhar.
+// Testa o próprio teste de fidelidade (spec 2.1) com uma fonte sintética do CIC: uma saída
+// correta passa; qualquer alteração de caractere, texto sem proveniência, caminho inválido,
+// texto do Prólogo ou falta/duplicação numa visão exigida faz falhar.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { RawSources, type RawSourcePaths } from "./fidelity/rawSources.ts";
-import { verifyFidelity, type Manifest, type ManifestEntry } from "./fidelity/verify.ts";
+import { RawSources } from "./fidelity/rawSources.ts";
+import { verifyFidelity, type ManifestEntry } from "./fidelity/verify.ts";
 
-// ---------- Fontes sintéticas ----------
+// Caracteres invisíveis montados por código (o arquivo não pode ter literais nem escapes decodificáveis).
+const SHY = String.fromCharCode(0xad); // hífen suave
+const NBSP = String.fromCharCode(0xa0);
+const BOM = String.fromCharCode(0xfeff);
+
+// ---------- Fonte sintética ----------
 
 const root = mkdtempSync(join(tmpdir(), "etl-fidelity-"));
-const srcDir = join(root, "src");
-mkdirSync(srcDir);
-
-const MS_TEXT_1 = "No princípio criou Deus o céu e a terra.";
-const MS_TEXT_2 = "e separou as águas das ou\u00ADtras. Foi o segundo dia.*";
-const MS_TEXT_2B = "Segunda ocorrência do número 2 (repetido na fonte).";
-const AM_TEXT = "Texto  com  espaços duplos e no fim ";
-const CIC_26 = "Quando professamos a nossa fé (Mt 16, 18). CAPÍTULO PRIMEIRO";
-const CIC_27 = "O desejo de Deus está inscrito no coração do homem. 1. Cf. Gn 1, 1.";
+const CIC_26 = `Quando professamos a nossa fé, começamos por dizer «creio» (Mt 16, 18). Ou${SHY}tras palavras *`;
+const CIC_27 = "O desejo de Deus está inscrito no coração do homem  (Gn 1, 27). 1. Cf. Gn 1, 1.";
 const PART_TITLE = "Primeira Parte — A Profissão da Fé";
 const CHAPTER_TITLE = "O homem é «capaz» de Deus";
 
-writeFileSync(join(srcDir, "ms.json"), JSON.stringify([
-  { livro: "Gênesis", capitulos: [{ capitulo: 1, versiculos: [
-    { numero: 1, texto: MS_TEXT_1 }, { numero: 2, texto: MS_TEXT_2 }, { numero: 2, texto: MS_TEXT_2B },
-  ] }] },
-]));
-// Ave-Maria com BOM no arquivo (deve ser removido só do arquivo).
-writeFileSync(join(srcDir, "am.json"), "\uFEFF" + JSON.stringify({
-  antigoTestamento: [{ nome: "Gênesis", capitulos: [{ capitulo: 1, versiculos: [{ versiculo: 1, texto: AM_TEXT }] }] }],
-  novoTestamento: [],
-}));
-writeFileSync(join(srcDir, "cic.json"), JSON.stringify({
+const cicPath = join(root, "cic.json");
+// BOM no início do arquivo: deve ser descartado só do arquivo.
+writeFileSync(cicPath, BOM + JSON.stringify({
   titulo: "Catecismo", subtitulo: "", fonte: "", totalParagrafos: 2,
   partes: [
     { numero: 0, titulo: "Prólogo", capitulos: [{ titulo: "Prólogo", paragrafos: [{ numero: 1, texto: "corrompido" }] }] },
@@ -44,84 +34,52 @@ writeFileSync(join(srcDir, "cic.json"), JSON.stringify({
     ] }] },
   ],
 }));
-
-const paths: RawSourcePaths = {
-  matos_soares: join(srcDir, "ms.json"),
-  ave_maria: join(srcDir, "am.json"),
-  catechism: join(srcDir, "cic.json"),
-};
-const raw = new RawSources(paths);
+const raw = new RawSources({ catechism: cicPath });
 
 // ---------- Saída correta + manifesto ----------
 
-const MS_LOC = (vi: number) => [0, "capitulos", 0, "versiculos", vi];
-const AM_LOC = ["antigoTestamento", 0, "capitulos", 0, "versiculos", 0];
-const CIC_LOC = (gi: number) => ["partes", 1, "capitulos", 0, "paragrafos", gi];
+const LOC = (gi: number) => ["partes", 1, "capitulos", 0, "paragrafos", gi];
+const FILE = "catechism_by_chapter.json";
 
 interface Fixture { files: Record<string, unknown>; entries: ManifestEntry[] }
 
-function paragraphDoc(n: number, text: string) {
-  return { paragraph: n, part: 1, part_title: PART_TITLE, chapter_title: CHAPTER_TITLE, text, bible_references: [] };
-}
-
-function paragraphEntries(file: string, base: string, gi: number): ManifestEntry[] {
-  return [
-    { source: "catechism", locator: CIC_LOC(gi), field: "texto", file, pointer: `${base}/text` },
-    { source: "catechism", locator: ["partes", 1], field: "titulo", file, pointer: `${base}/part_title` },
-    { source: "catechism", locator: ["partes", 1, "capitulos", 0], field: "titulo", file, pointer: `${base}/chapter_title` },
-  ];
-}
-
 function goodFixture(): Fixture {
-  const tr = (ave: unknown, ms: unknown) => ({ ave_maria: ave, matos_soares: ms });
   return {
     files: {
-      "bible/GEN/1.json": {
-        book: "Gênesis", usfm: "GEN", chapter: 1,
-        verses: [
-          { verse: 1, translations: tr({ text: AM_TEXT }, { text: MS_TEXT_1 }), catechism_paragraphs: [] },
-          // As duas ocorrências do número repetido ficam na saída (aqui, como 2 e 3).
-          { verse: 2, translations: tr(null, { ref: "Gn 1,2", text: MS_TEXT_2 }), catechism_paragraphs: [] },
-          { verse: 3, translations: tr(null, { ref: "Gn 1,2", text: MS_TEXT_2B }), catechism_paragraphs: [] },
-        ],
-      },
-      "catechism/26.json": paragraphDoc(26, CIC_26),
-      "catechism/27.json": paragraphDoc(27, CIC_27),
-      "catechism/full.json": { paragraphs: [paragraphDoc(26, CIC_26), paragraphDoc(27, CIC_27)] },
-      "books.json": { books: [{ usfm: "GEN", name: "Gênesis" }] },
+      [FILE]: [
+        { book: "Gênesis", usfm: "GEN", chapter: 1, catechism_paragraphs: [{ paragraph: 27, verses: [27], ref: "Gn 1, 27", text: CIC_27 }] },
+        { book: "Mateus", usfm: "MAT", chapter: 16, catechism_paragraphs: [{ paragraph: 26, verses: [18], ref: "Mt 16, 18", text: CIC_26 }] },
+      ],
+      "meta/part.json": { part_title: PART_TITLE, chapter_title: CHAPTER_TITLE },
     },
     entries: [
-      { source: "ave_maria", locator: AM_LOC, field: "texto", file: "bible/GEN/1.json", pointer: "/verses/0/translations/ave_maria/text" },
-      { source: "matos_soares", locator: MS_LOC(0), field: "texto", file: "bible/GEN/1.json", pointer: "/verses/0/translations/matos_soares/text" },
-      { source: "matos_soares", locator: MS_LOC(1), field: "texto", file: "bible/GEN/1.json", pointer: "/verses/1/translations/matos_soares/text" },
-      { source: "matos_soares", locator: MS_LOC(2), field: "texto", file: "bible/GEN/1.json", pointer: "/verses/2/translations/matos_soares/text" },
-      ...paragraphEntries("catechism/26.json", "", 0),
-      ...paragraphEntries("catechism/27.json", "", 1),
-      ...paragraphEntries("catechism/full.json", "/paragraphs/0", 2), // usa a cópia repetida do §26: texto idêntico
-      ...paragraphEntries("catechism/full.json", "/paragraphs/1", 1),
+      { source: "catechism", locator: LOC(1), field: "texto", file: FILE, pointer: "/0/catechism_paragraphs/0/text" },
+      // Usa a cópia repetida do §26: o texto é idêntico.
+      { source: "catechism", locator: LOC(2), field: "texto", file: FILE, pointer: "/1/catechism_paragraphs/0/text" },
+      { source: "catechism", locator: ["partes", 1], field: "titulo", file: "meta/part.json", pointer: "/part_title" },
+      { source: "catechism", locator: ["partes", 1, "capitulos", 0], field: "titulo", file: "meta/part.json", pointer: "/chapter_title" },
     ],
   };
 }
 
 let run = 0;
-function check(fx: Fixture) {
+function check(fx: Fixture, requiredViews?: string[]) {
   const dir = join(root, `out-${run++}`);
   for (const [file, doc] of Object.entries(fx.files)) {
     const p = join(dir, file);
     mkdirSync(dirname(p), { recursive: true });
     writeFileSync(p, JSON.stringify(doc, null, 2), "utf8");
   }
-  const manifest: Manifest = { entries: fx.entries };
-  const r = verifyFidelity({ sources: raw, outputDir: dir, manifest });
+  const r = verifyFidelity({ sources: raw, outputDir: dir, manifest: { entries: fx.entries }, ...(requiredViews ? { requiredViews } : {}) });
   rmSync(dir, { recursive: true, force: true });
   return r;
 }
 
-/** Aplica `mutate` ao texto do Matos Soares v2 na saída. */
-function withMsText(mutate: (s: string) => string): Fixture {
+/** Aplica `mutate` ao texto do §26 na saída. */
+function with26(mutate: (s: string) => string): Fixture {
   const fx = goodFixture();
-  const v = (fx.files["bible/GEN/1.json"] as { verses: { translations: { matos_soares: { text: string } } }[] }).verses[1]!;
-  v.translations.matos_soares.text = mutate(v.translations.matos_soares.text);
+  const p = (fx.files[FILE] as { catechism_paragraphs: { text: string }[] }[])[1]!.catechism_paragraphs[0]!;
+  p.text = mutate(p.text);
   return fx;
 }
 
@@ -130,107 +88,94 @@ function withMsText(mutate: (s: string) => string): Fixture {
 test("saída fiel passa", () => {
   const r = check(goodFixture());
   assert.ok(r.ok, JSON.stringify(r, null, 2));
-  assert.equal(r.checked, 16);
+  assert.equal(r.checked, 4);
 });
 
 test("o leitor independente remove o BOM do arquivo, mas não toca no texto", () => {
-  assert.equal(raw.resolve("ave_maria", AM_LOC, "texto"), AM_TEXT);
+  assert.equal(raw.resolve("catechism", LOC(0), "texto"), CIC_26);
 });
 
 for (const [name, mutate] of [
-  ["remover hífen suave U+00AD", (s: string) => s.split("\u00AD").join("")],
+  ["remover hífen suave U+00AD", (s: string) => s.split(SHY).join("")],
   ["remover asterisco", (s: string) => s.slice(0, -1)],
-  ["trocar um caractere", (s: string) => "E" + s.slice(1)],
+  ["trocar um caractere", (s: string) => "q" + s.slice(1)],
   ["acrescentar espaço no fim", (s: string) => s + " "],
   ["decompor acentos (NFD)", (s: string) => s.normalize("NFD")],
-  ["trocar por espaço não separável", (s: string) => s.split(" ").join("\u00A0")],
+  ["trocar por espaço não separável", (s: string) => s.split(" ").join(NBSP)],
 ] as const) {
   test(`falha ao ${name}`, () => {
-    const r = check(withMsText(mutate));
+    const r = check(with26(mutate));
     assert.equal(r.ok, false);
     assert.equal(r.divergences.length, 1);
     assert.match(r.divergences[0]!.reason, /primeira diferença/);
   });
 }
 
-test("falha se aparecer texto de uma tradução que não é fonte (ex.: cnbb, retirada na revisão 3)", () => {
+test("falha se o espaço duplo do texto for colapsado", () => {
   const fx = goodFixture();
-  const v = (fx.files["bible/GEN/1.json"] as { verses: { translations: Record<string, unknown> }[] }).verses[0]!;
-  v.translations.cnbb = { text: MS_TEXT_1 };
-  const r = check(fx);
-  assert.equal(r.ok, false);
-  assert.deepEqual(r.unmanifested.map((u) => u.pointer), ["/verses/0/translations/cnbb/text"]);
-});
-
-test("falha se o espaço no fim do texto da Ave-Maria for aparado", () => {
-  const fx = goodFixture();
-  const v = (fx.files["bible/GEN/1.json"] as { verses: { translations: { ave_maria: { text: string } } }[] }).verses[0]!;
-  v.translations.ave_maria.text = AM_TEXT.slice(0, -1);
+  const p = (fx.files[FILE] as { catechism_paragraphs: { text: string }[] }[])[0]!.catechism_paragraphs[0]!;
+  p.text = CIC_27.split("  ").join(" ");
   assert.equal(check(fx).ok, false);
-});
-
-test("falha se uma das ocorrências de número repetido for descartada", () => {
-  const fx = goodFixture();
-  const doc = fx.files["bible/GEN/1.json"] as { verses: unknown[] };
-  doc.verses.pop();
-  fx.entries = fx.entries.filter((e) => e.pointer !== "/verses/2/translations/matos_soares/text");
-  const r = check(fx);
-  assert.equal(r.ok, false);
-  assert.deepEqual(r.missing.map((m) => m.key), [`matos_soares@${JSON.stringify(MS_LOC(2))}`]);
 });
 
 test("falha se um texto da saída não tiver proveniência", () => {
   const fx = goodFixture();
-  fx.entries = fx.entries.filter((e) => e.pointer !== "/verses/0/translations/ave_maria/text");
+  fx.entries = fx.entries.filter((e) => e.pointer !== "/0/catechism_paragraphs/0/text");
   const r = check(fx);
   assert.equal(r.ok, false);
-  assert.equal(r.unmanifested.length, 1);
-  assert.equal(r.missing.length, 1);
-});
-
-test("falha se um texto da fonte aparecer duas vezes na Bíblia", () => {
-  const fx = goodFixture();
-  const doc = fx.files["bible/GEN/1.json"] as { verses: { translations: Record<string, unknown> }[] };
-  doc.verses[2]!.translations.ave_maria = { text: AM_TEXT };
-  fx.entries.push({ source: "ave_maria", locator: AM_LOC, field: "texto", file: "bible/GEN/1.json", pointer: "/verses/2/translations/ave_maria/text" });
-  const r = check(fx);
-  assert.equal(r.ok, false);
-  assert.equal(r.duplicated.length, 1);
+  assert.deepEqual(r.unmanifested, [{ file: FILE, pointer: "/0/catechism_paragraphs/0/text" }]);
 });
 
 test("falha se o manifesto apontar para registro inexistente na fonte", () => {
   const fx = goodFixture();
-  fx.entries[2] = { ...fx.entries[2]!, locator: MS_LOC(99) };
+  fx.entries[0] = { ...fx.entries[0]!, locator: LOC(99) };
   const r = check(fx);
   assert.equal(r.ok, false);
   assert.match(r.divergences[0]!.reason, /inexistente na fonte/);
 });
 
+test("falha se o manifesto apontar para caminho inexistente na saída", () => {
+  const fx = goodFixture();
+  fx.entries.push({ source: "catechism", locator: LOC(1), field: "texto", file: FILE, pointer: "/9/catechism_paragraphs/0/text" });
+  const r = check(fx);
+  assert.equal(r.ok, false);
+  assert.match(r.divergences[0]!.reason, /não aponta para uma string/);
+});
+
 test("falha se o texto vier do Prólogo", () => {
   const fx = goodFixture();
-  (fx.files["catechism/27.json"] as { text: string }).text = "corrompido";
-  fx.entries = fx.entries.map((e) => e.file === "catechism/27.json" && e.pointer === "/text"
-    ? { ...e, locator: ["partes", 0, "capitulos", 0, "paragrafos", 0] } : e);
+  (fx.files[FILE] as { catechism_paragraphs: { text: string }[] }[])[0]!.catechism_paragraphs[0]!.text = "corrompido";
+  fx.entries[0] = { ...fx.entries[0]!, locator: ["partes", 0, "capitulos", 0, "paragrafos", 0] };
   const r = check(fx);
   assert.equal(r.ok, false);
   assert.ok(r.divergences.some((d) => /Prólogo/.test(d.reason)));
 });
 
-test("falha se faltar o catechism/full.json", () => {
-  const fx = goodFixture();
-  delete fx.files["catechism/full.json"];
-  fx.entries = fx.entries.filter((e) => e.file !== "catechism/full.json");
-  const r = check(fx);
-  assert.equal(r.ok, false);
-  assert.deepEqual(r.missing.map((m) => m.view), ["catechism/full.json", "catechism/full.json"]);
-});
-
 test("falha se o título do capítulo for alterado", () => {
   const fx = goodFixture();
-  (fx.files["catechism/26.json"] as { chapter_title: string }).chapter_title = "O homem é \"capaz\" de Deus";
+  (fx.files["meta/part.json"] as { chapter_title: string }).chapter_title = "O homem é \"capaz\" de Deus";
   assert.equal(check(fx).ok, false);
 });
 
-test("o leitor independente não considera a CNBB uma fonte", () => {
-  assert.deepEqual([...new Set(raw.coverage.map((c) => c.source))].sort(), ["ave_maria", "catechism", "matos_soares"]);
+test("visão exigida: aponta parágrafo ausente e parágrafo duplicado", () => {
+  // Sem exigência (padrão), repetir o mesmo parágrafo em vários capítulos é válido.
+  const fx = goodFixture();
+  const doc = fx.files[FILE] as { catechism_paragraphs: unknown[] }[];
+  doc[0]!.catechism_paragraphs.push({ paragraph: 26, verses: [], ref: "Gn 1", text: CIC_26 });
+  fx.entries.push({ source: "catechism", locator: LOC(0), field: "texto", file: FILE, pointer: "/0/catechism_paragraphs/1/text" });
+  assert.ok(check(fx).ok);
+  // Com a visão exigida, §26 aparece duas vezes.
+  const r = check(fx, [FILE]);
+  assert.equal(r.ok, false);
+  assert.deepEqual(r.duplicated.map((d) => d.key), ["catechism#26"]);
+  // E, sem o §27, ele falta.
+  const fx2 = goodFixture();
+  (fx2.files[FILE] as unknown[]).shift();
+  fx2.entries = fx2.entries.filter((e) => e.pointer !== "/0/catechism_paragraphs/0/text").map((e) => e.file === FILE ? { ...e, pointer: "/0/catechism_paragraphs/0/text" } : e);
+  const r2 = check(fx2, [FILE]);
+  assert.deepEqual(r2.missing.map((m) => m.key), ["catechism#27"]);
+});
+
+test("o leitor independente só conhece o Catecismo e ignora o Prólogo na cobertura", () => {
+  assert.deepEqual(raw.coverage.map((c) => c.key), ["catechism#26", "catechism#27"]);
 });

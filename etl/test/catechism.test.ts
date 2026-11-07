@@ -10,7 +10,7 @@ import { formatFidelityResult, verifyFidelity } from "./fidelity/verify.ts";
 import type { CatechismParagraph } from "../src/catechism/paragraphs.ts";
 import { loadAllSources } from "../src/sources/index.ts";
 import type { CatechismOccurrence } from "../src/sources/types.ts";
-import { runVersification } from "../src/versification/index.ts";
+import { loadCanonical } from "../src/versification/canonical.ts";
 
 const BOOKS = [
   { usfm: "GEN", cic_abbreviations: ["Gn"] },
@@ -75,7 +75,7 @@ test("citações: correção de sigla vale só no parágrafo configurado; capít
 
 test("catecismo por capítulo: dados reais", () => {
   const src = loadAllSources();
-  const cic = runCatechism(src, runVersification(src).canonical);
+  const cic = runCatechism(src, loadCanonical(src.books.books.map((b) => b.usfm)));
   const r = cic.report;
   assert.equal(r.paragraphs, 2840);
   // spec 7.5: 28 parágrafos com bloco de notas; 179 e 827 também são "só nota" (7.4).
@@ -135,7 +135,7 @@ test("formatRef: rótulo no estilo do CIC com intervalos compactados", () => {
 
 test("correção de versículo que não casa com a fonte interrompe o build", () => {
   const src = loadAllSources();
-  const canonical = runVersification(src).canonical;
+  const canonical = loadCanonical(src.books.books.map((b) => b.usfm));
   const cfg = loadCatechismConfig();
   const bad = { ...cfg, verse_fixes: [{ paragraph: 432, usfm: "ACT", chapter: 4, from: [99], verses: [12], note: "teste" }] };
   assert.throws(() => runCatechism(src, canonical, bad), /casou com 0 citações/u);
@@ -143,12 +143,12 @@ test("correção de versículo que não casa com a fonte interrompe o build", ()
 
 test("catecismo por capítulo: fidelidade dos textos (verificador independente)", () => {
   const src = loadAllSources();
-  const cic = runCatechism(src, runVersification(src).canonical);
+  const cic = runCatechism(src, loadCanonical(src.books.books.map((b) => b.usfm)));
   const dir = mkdtempSync(join(tmpdir(), "cic-by-chapter-"));
   try {
     writeFileSync(join(dir, BY_CHAPTER_FILE), JSON.stringify(cic.byChapter), "utf8");
     const raw = new RawSources(src.config);
-    const res = verifyFidelity({ sources: raw, outputDir: dir, manifest: { entries: cic.manifest }, requiredViews: { matos_soares: [], ave_maria: [], catechism: [] } });
+    const res = verifyFidelity({ sources: raw, outputDir: dir, manifest: { entries: cic.manifest } });
     assert.ok(res.ok, formatFidelityResult(res));
     assert.equal(res.checked, cic.byChapter.reduce((s, e) => s + e.catechism_paragraphs.length, 0));
     // O número do parágrafo ao lado do texto é o da fonte (conferido pelo leitor independente).
@@ -160,7 +160,7 @@ test("catecismo por capítulo: fidelidade dos textos (verificador independente)"
     const tampered = structuredClone(cic.byChapter);
     tampered[0]!.catechism_paragraphs[0]!.text += " ";
     writeFileSync(join(dir, BY_CHAPTER_FILE), JSON.stringify(tampered), "utf8");
-    const bad = verifyFidelity({ sources: raw, outputDir: dir, manifest: { entries: cic.manifest }, requiredViews: { matos_soares: [], ave_maria: [], catechism: [] } });
+    const bad = verifyFidelity({ sources: raw, outputDir: dir, manifest: { entries: cic.manifest } });
     assert.equal(bad.ok, false);
     assert.equal(bad.divergences.length, 1);
   } finally {

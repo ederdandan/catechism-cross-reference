@@ -1,11 +1,11 @@
 # Implementações futuras — estado do ETL e o que falta
 
 Registro de 2026-11-06, para retomar o trabalho depois. Fonte da verdade continua sendo
-[`spec_do_pipeline_de_etl.md`](spec_do_pipeline_de_etl.md) (revisão 4).
+[`spec_do_pipeline_de_etl.md`](spec_do_pipeline_de_etl.md) (revisão 5).
 
 ## 0. Entrega atual: Catecismo por capítulo bíblico ✅
 
-Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.E (revisão 4).
+Especificada na spec, seção 5.E (revisões 4 e 5).
 
 * **Saída:** `npm run build:data` gera `etl/output/catechism_by_chapter.json` (~1,1 MB).
   * Tem 334 capítulos de 50 livros e 1.337 citações em 809 parágrafos.
@@ -15,16 +15,18 @@ Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.
     como `1 Tm 3, 15`.
   * 12 versículos foram corrigidos (`verse_fixes`): OCR/digitação, §§1693 e 1858, e 2 Mac 12, 46
     convertido da Vulgata. Aprovado pelo usuário em 2026-11-06.
-* **Fidelidade:** etapa [4] do build. Os 1.250 textos são comparados com a fonte pelo verificador
+* **Fidelidade:** etapa [3] do build. Os 1.250 textos são comparados com a fonte pelo verificador
   independente, e qualquer divergência interrompe o build.
 * **Revisado pelo usuário em 2026-11-06:**
   * correções de sigla (§§320, 455, 371);
   * as 24 formas irregulares aceitas no capítulo;
+  * as 12 correções de versículo;
   * a numeração hebraica dos Salmos, conferida nos dados.
 * **Código:**
   * `src/catechism/paragraphs.ts`: filtros da seção 7;
   * `src/catechism/citations.ts`: parser da seção 8;
   * `src/catechism/index.ts`: índice e manifesto;
+  * `src/versification/`: leitor `.vrs` e numeração canônica;
   * `config/catechism.json`;
   * `test/catechism.test.ts`.
 * **Limitações conhecidas** (não são erros):
@@ -32,172 +34,62 @@ Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.
   * só valem citações entre parênteses;
   * os textos levam as imperfeições da fonte (marcadores `(N)`, títulos embutidos, notas vazadas,
     `U+00AD`), e o consumidor deve lidar com elas.
-* **Próximos passos possíveis desta linha:**
-  * `catechism_by_verse.json`: índice leve versículo → parágrafos, só números (spec 5.C);
-  * conferência lexical automática no relatório: o trecho «…» citado comparado com o texto bíblico.
-    Na análise, 717 de 811 citações bateram e 94 ficaram como suspeitas para triagem;
-  * conferir a numeração das cerca de 30 citações deuterocanônicas restantes (Sb, Eclo, Tb, Dn);
-  * notas de rodapé, com uma nova fonte (vatican.va);
-  * texto do versículo bíblico na saída, que exige terminar a F3.
 
-## 1. Estado atual
-
-| Fase | Conteúdo | Status |
-|---|---|---|
-| F0 | Estrutura `etl/`, Node 24 + TypeScript (type stripping), `tsc --noEmit`, `node:test` | ✅ concluída |
-| F1 | Leitores estritos das fontes (UTF-8 fatal, só o BOM do arquivo removido, conjunto exato de chaves), inventário (`reports/inventory.json`) | ✅ concluída |
-| F2 | Verificador de fidelidade independente (`test/fidelity/`, sem importar `src/`) e guardas estáticos | ✅ concluída |
-| F3 | Versificação: tabelas Paratext/UBS, canônico, alinhamento, conferência | 🔶 em andamento (código pronto; faltam as regras de exceção). Não é necessária para a entrega da seção 0. |
-| F4 | Catecismo: filtros e parser de citações | ✅ para o nível de capítulo (seção 0); a posição dos repetidos (vizinho n−1) só importa na saída completa |
-| F5 | Exportação dos JSONs e manifesto de proveniência | 🔶 manifesto pronto e usado na seção 0; faltam as visões completas da spec (5.A–5.D) |
-| F6 | Build completo com teste de fidelidade obrigatório | 🔶 o build já roda o teste de fidelidade sobre `output/`; falta a saída completa |
-
-Na data deste registro, `npm run typecheck` passa e `npm test` dá 50/50.
+Na data deste registro, `npm run typecheck` passa e `npm test` dá 40/40.
 
 `npm run build:data` executa:
-1. inventário;
-2. versificação/conferência (só relatório);
-3. Catecismo por capítulo, que grava em `output/`;
-4. teste de fidelidade.
+1. inventário do Catecismo;
+2. índice por capítulo, que grava em `output/`;
+3. teste de fidelidade.
 
-## 2. Decisões pendentes (do usuário)
+## 1. Tratamento das Bíblias: removido desta versão
 
-1. **Esquema canônico de Daniel, Ester e Baruc (decisão 2):** sem resposta. O que está em
-   `config/versification/canonical.json` é a proposta em uso:
-   * DAN com 14 capítulos (3:100, 13:64, 14:42);
-   * EST na numeração da Vulgata (VUL83, 16 capítulos);
-   * BAR com 6 capítulos (Carta de Jeremias = Bar 6);
-   * conversões `from_org`: S3Y → DAN 3:24-90, DAN 3:24-33 → 3:91-100, SUS → DAN 13,
-     BEL → DAN 14, LJE → BAR 6.
-2. **Tobias, Judite e Eclesiástico na numeração da Vulgata:** proposta ainda não aprovada.
-   As duas traduções seguem o Eclesiástico longo da Vulgata (51 capítulos; por exemplo,
-   Eclo 1 tem 40 versículos contra 30 no org). Experimento feito com TOB/JDT/SIR = vul.vrs
-   (capítulos 1–51 para SIR, porque o vul.vrs tem 52 e nenhuma fonte tem o 52):
+Na revisão 5 (2026-11-06), o usuário pediu para deixar só o necessário para o índice do Catecismo.
+Saíram do código:
+* os leitores da Matos Soares e da Ave-Maria;
+* o alinhamento de versificação e a conferência (fase F3);
+* `vul.vrs`, `eng.vrs` e as exceções por tradução;
+* os scripts de análise da F3 em `tools/`.
 
-   | Tradução | Esquema | Capítulos pendentes | Versículos canônicos sem texto | Fora do canônico |
-   |---|---|---|---|---|
-   | Matos Soares | org (atual) | 49 | 99 | 273 |
-   | Matos Soares | Vulgata | 47 | 86 | 0 |
-   | Ave-Maria | org (atual) | 17 | 35 | 273 |
-   | Ave-Maria | Vulgata | 13 | 23 | 1 |
+O índice não depende de nenhum deles. Antes de remover, a saída foi comparada com a da versão anterior
+e ficou idêntica byte a byte.
 
-   Se for aprovada:
-   * acrescentar TOB/JDT/SIR em `canonical.json`;
-   * pôr `"canonical"` como base desses livros nos dois arquivos de exceção;
-   * registrar o desvio na spec.
+Tudo continua no histórico do git. O commit **`19cc1d7`**, o anterior à remoção nesta mesma branch
+`feat/catecismo-por-referencia-biblica`, tem (a `main` também tem as fases F0–F3):
+* o código completo das Bíblias;
+* este documento com as decisões pendentes da F3:
+  * Daniel/Ester/Baruc;
+  * Tobias/Judite/Eclesiástico na Vulgata;
+  * regras de exceção;
+* os números da conferência e o método do gerador de propostas.
 
-   Verificar também se Pr e 1Cr da Matos Soares têm o mesmo padrão.
-3. **Revisão das regras de exceção:** o usuário vai revisar ("3 - posso revisar").
+Para retomar, basta trazer esses arquivos de volta a partir desse commit.
 
-## 3. F3 — o que falta
+## 2. Próximos passos possíveis
 
-* **Regras de exceção:** preencher `config/versification/exceptions/matos_soares.json` e
-  `ave_maria.json`, que hoje têm `"rules": []`. Cada regra precisa de:
-  * `note` com a evidência;
-  * nível de confiança, para a revisão do usuário.
-* **Conferência só com as tabelas base** (antes de qualquer regra):
+* **API estática** (branch `feat/api-catecismo`): Hono com geração estática (`toSSG`) publicada no
+  GitHub Pages. Proposta feita e aguardando aprovação. Antes de publicar, o usuário precisa confirmar
+  os direitos autorais do texto do CIC e que o repositório pode ser público.
+* `catechism_by_verse.json`: índice leve versículo → parágrafos, só números (spec 5.C).
+* Conferir a numeração das cerca de 30 citações deuterocanônicas restantes (Sb, Eclo, Tb, Dn).
+* Conferência automática do trecho «…» citado contra o texto bíblico. Na análise, 717 de 811 citações
+  bateram e 94 ficaram como suspeitas. Exige trazer de volta uma fonte bíblica (ver seção 1).
+* Notas de rodapé, com uma nova fonte (vatican.va).
+* Texto do versículo bíblico na saída, que exige trazer de volta as Bíblias e terminar a F3.
 
-  | Tradução | Colisões | Fora do canônico | Versículos sem texto | Suspeitas lexicais | Capítulos pendentes |
-  |---|---|---|---|---|---|
-  | Matos Soares | 61 | 283 | 253 | 767 | 304 |
-  | Ave-Maria | 23 | 289 | 423 | 696 | 189 |
-
-* **Fatos já verificados para as regras:**
-  * A Ave-Maria junta versículos e renumera em sequência. Exemplos:
-    * Js 15: 21 → 21-32, 22 → 33-47, 23 → 48-60, 24 → 61, 25 → 62, 26 → 63;
-    * Js 12: 4 → 4-5 e 8 → 9-24;
-    * Js 7: 4 → 4-5.
-  * O número do versículo seguinte aparece embutido no texto 9 vezes na Ave-Maria e nunca
-    na Matos Soares.
-  * A Matos Soares pula números de versículo no Eclesiástico (cap. 1 sem 7 e 32; cap. 3 sem 22;
-    cap. 4 sem 2 e 7…). Falta ver se o texto está embutido no vizinho (vira regra de versículo
-    juntado) ou se falta de fato (fica `null`).
-  * Registros sem letras na fonte, mantidos como estão:
-    * Ave-Maria JOS 19:12-17 = `"[]"`;
-    * Matos Soares 2SA 18:25 e LAM 5:5 = `"."`.
-* **Método usado para gerar propostas** (implementado em `etl/tools/propose.mjs` e
-  `etl/tools/merge.cjs`; ver a seção 7):
-  * Programação dinâmica monótona por capítulo canônico, que alinha os registros da tradução T
-    aos versículos canônicos.
-  * Pontuação: quanto dos tokens da outra tradução (referência) aparece no registro.
-    Parâmetros: JOIN 0,2 · COL 0,4 · GAP 0,02 · KEEP 0,05 · K = 25 · bônus 0,6 por número de
-    versículo embutido.
-  * Rodar só em capítulos com lacuna ou colisão, porque nos capítulos só lexicais o gerador
-    acaba seguindo erros da tradução de referência.
-  * Confiança "alta" quando a pontuação nova é ≥ 0,4 e ganha ≥ 0,2 sobre a atual; senão "baixa".
-  * Colisões viram regras com `"additional": true`.
-  * Não aplicar propostas nos livros cujo esquema canônico está pendente (seção 2), porque o
-    gerador colapsa versículos legítimos em colisões sem evidência.
-* **Testes:** faltam testes unitários do campo `additional` (colisão declarada vs. colisão real)
-  em `test/versification.test.ts`.
-* **Critério de saída da F3:** conferência limpa (sem colisões não declaradas, sem fora do canônico
-  e sem regras sem uso). Lacunas restantes devem estar justificadas.
-
-## 4. F4 — Catecismo
-
-* Filtrar o Prólogo e os parágrafos repetidos (§§1699, 1895, 2217, 2236, 2439, 2759). Regra
-  aprovada: a posição correta é a do vizinho n−1. Relatar §1699 e §2759 no relatório.
-* §1698 tem um bloco de notas vazado que não está na lista de 28 da spec: documentar no relatório,
-  sem alterar o texto.
-* Os títulos de seção vêm embutidos no fim do texto do parágrafo anterior. Isso só se registra:
-  o texto não pode ser alterado.
-* Parser das citações bíblicas do corpo do CIC → chaves canônicas, usando `cic_abbreviations` de
-  `config/books.json`. Variantes já encontradas:
-  * `He 1, 3` (§320);
-  * `1 Co 12, 3` (§455);
-  * erro tipográfico `Ga 2, 23` (§371), que é Gn.
-* Confirmar em que numeração o CIC cita Tb/Jt/Eclo e DAN/EST/BAR (depende das decisões da seção 2).
-
-## 5. F5 — Exportação
-
-* JSONs de `output/` conforme a spec, seção 5:
-  * `translations` só com `matos_soares` e `ave_maria`, sem campo `cnbb` (revisão 3);
-  * campo `ref` mantido.
-* Campo `additional: [{ "ref", "text" }]` no objeto da tradução para colisões declaradas.
-* `translations.json` sem entrada CNBB.
-* Manifesto de proveniência (`source`, `locator`, `field`, `file`, `pointer`) no formato que
-  `test/fidelity/verify.ts` já consome.
-* **Documentar na spec (pedir permissão):** o campo `additional` (5.A), o `canonical.json` e o
-  formato dos arquivos de exceção (`base`, `rules`, `from` `c:v` / `c:v-w` / `c:v#k`, `to`,
-  `additional`).
-
-## 6. F6 — Build final
-
-* `build:data` completo: fontes → versificação → catecismo → exportação → verificação de
-  fidelidade. Qualquer divergência faz o build falhar (spec, 2.1).
-* Relatórios finais em `reports/`.
-* Revisar a seção de direitos autorais (spec, 11) antes de publicar a base.
-
-## 7. Ferramentas de apoio (`etl/tools/`)
-
-Scripts de análise usados na F3. Não fazem parte do pipeline nem de `build:data`, e não ficam
-sob os guardas estáticos de `src/`/`test/`. Também não estão no `tsconfig`, porque são `.mjs`/`.cjs`.
-Só leem as fontes. A única exceção é o `merge.cjs`, que grava nos arquivos de exceção do projeto.
-Rodar de dentro de `etl/`.
+## 3. Ferramenta de apoio (`etl/tools/`)
 
 | Script | Uso | O que faz |
 |---|---|---|
-| `propose.mjs` | `node tools/propose.mjs <traducao> [USFM ...] > propostas.json` | Gera as propostas de regras (seção 3) e imprime JSON; não grava nada. `ALL=1` inclui capítulos só com suspeita lexical. |
-| `merge.cjs` | `node tools/merge.cjs <traducao> propostas.json <referencia>` | **Grava** as propostas em `config/versification/exceptions/<traducao>.json` com `confidence` e `note`. Rodar só com aprovação, e depois `npm run build:data` para conferir. |
-| `exp-vulgate-deutero.mjs` | `[BOOKS=TOB,JDT,SIR] node tools/exp-vulgate-deutero.mjs` | Experimento da decisão 2 da seção 2: canônico desses livros = vul.vrs e conferência resultante. Grava só `reports/canonical-exp.json`. |
-| `peek.mjs` | `[SRC=ave_maria] [W=90] node tools/peek.mjs "JOS 7:4-5" ...` | Mostra os versículos das fontes como estão (texto cortado em `W` caracteres). |
-| `sim.mjs` | `node tools/sim.mjs <A> <B> <USFM> <capA> [capB]` | Similaridade lexical versículo a versículo entre duas traduções; `<<<` marca deslocamento provável. |
-| `summ.mjs` | `node tools/summ.mjs reports/versification.json [traducao]` | Resumo por livro das pendências da conferência (lacunas `m`, colisões `c`, lexicais `L@deslocamento`). |
 | `escape-invisible.cjs` | `node tools/escape-invisible.cjs <arquivos...>` | Troca caracteres invisíveis literais (U+00AD, U+00A0, U+FEFF…) por escapes `\uXXXX` em código e testes. Necessário porque as ferramentas de escrita do agente decodificam esses escapes. **Nunca usar em fontes nem em saída.** |
 
-Ficaram de fora os scripts exploratórios da CNBB (retirada na revisão 3) e o gerador do
-`config/books.json`, que dependia do banco da CNBB. O `books.json` já está versionado.
-
-## 8. Para retomar
+## 4. Para retomar
 
 * **Branches:**
   * `main` tem as fases F0–F3 parciais (commits `39841c2` e `247526c`);
-  * `feat/catecismo-por-referencia-biblica` tem a entrega da seção 0.
-  * Nenhum push foi feito.
+  * `feat/catecismo-por-referencia-biblica` tem a versão enxuta, só com o Catecismo. O código das
+    Bíblias fica no commit anterior, `19cc1d7`;
+  * `feat/api-catecismo` foi criada a partir de `19cc1d7` para a API e ainda não tem commits próprios.
 * **Passos:**
   1. Ler a spec e este arquivo.
-  2. Responder às decisões da seção 2.
-  3. Em `etl/`, rodar `npm install`, `npm run typecheck`, `npm test` e `npm run build:data`, e
-     conferir os números de `reports/versification.json`.
-  4. Continuar a F3 pelas regras de exceção: `tools/propose.mjs`, depois revisão, depois
-     `tools/merge.cjs`, depois a conferência.
+  2. Em `etl/`, rodar `npm install`, `npm run typecheck`, `npm test` e `npm run build:data`.

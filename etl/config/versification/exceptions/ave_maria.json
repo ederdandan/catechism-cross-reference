@@ -1,8 +1,0 @@
-{
-  "$comment": "Ave-Maria: Salmos pela Vulgata, demais livros pela numeração hebraica (spec 6.2). base = tabela por livro; rules = exceções (from na numeração da fonte, to na canônica). RASCUNHO — revisar.",
-  "base": {
-    "default": "org",
-    "books": { "PSA": "vul", "DAN": "canonical", "EST": "canonical", "BAR": "canonical" }
-  },
-  "rules": []
-}

@@ -1,8 +1,8 @@
 # catechism-cross-reference
 
-ETL local, de execução única, que lê o **Catecismo da Igreja Católica (CIC)** e duas Bíblias católicas em
-português (**Matos Soares** e **Ave-Maria**) e gera JSONs estáticos com **referências cruzadas
-Bíblia ⇄ Catecismo**. A base gerada é consumida por outro projeto.
+ETL local, de execução única, que lê o **Catecismo da Igreja Católica (CIC)**, extrai as citações bíblicas
+do texto e gera um JSON estático com os **parágrafos do CIC organizados por livro, capítulo e versículo da
+Bíblia**. A base gerada é consumida por outro projeto.
 
 A especificação completa, que é a fonte da verdade do projeto, está em
 [`docs/spec_do_pipeline_de_etl.md`](docs/spec_do_pipeline_de_etl.md). O estado do trabalho e o que falta
@@ -15,7 +15,7 @@ estão em [`docs/implementacoes_futuras.md`](docs/implementacoes_futuras.md).
 1. [Regra fundamental: fidelidade dos textos](#1-regra-fundamental-fidelidade-dos-textos)
 2. [Entrega atual: Catecismo por capítulo bíblico](#2-entrega-atual-catecismo-por-capítulo-bíblico)
 3. [Como executar](#3-como-executar)
-4. [Fontes de dados](#4-fontes-de-dados)
+4. [Fonte de dados](#4-fonte-de-dados)
 5. [Como o ETL funciona](#5-como-o-etl-funciona)
 6. [Estrutura do projeto](#6-estrutura-do-projeto)
 7. [Relatórios](#7-relatórios)
@@ -26,9 +26,8 @@ estão em [`docs/implementacoes_futuras.md`](docs/implementacoes_futuras.md).
 
 ## 1. Regra fundamental: fidelidade dos textos
 
-Nenhum versículo ou parágrafo do CIC pode ter **qualquer caractere alterado** na saída. Isso inclui
-pontuação, espaços, marcações e caracteres invisíveis como `U+00AD`. O ETL só organiza, alinha e
-acrescenta metadados.
+Nenhum parágrafo do CIC pode ter **qualquer caractere alterado** na saída. Isso inclui pontuação,
+espaços, marcações e caracteres invisíveis como `U+00AD`. O ETL só organiza e acrescenta metadados.
 
 Essa regra é garantida em três camadas:
 
@@ -36,10 +35,10 @@ Essa regra é garantida em três camadas:
 |---|---|
 | **Leitura estrita** | UTF-8 com `fatal: true`: byte inválido é erro, não vira `�`. Só o BOM do início do arquivo é descartado. O conjunto de chaves de cada registro é conferido. |
 | **Guardas estáticos** (`test/static.test.ts`) | Em `src/` são proibidos `trim`, `normalize`, `replace`, `toLowerCase`, `toUpperCase`, `padStart`/`padEnd` etc. O uso legítimo, que nunca é sobre texto da fonte, exige o comentário `// fidelity-ok: <motivo>`. Caracteres invisíveis literais são proibidos em `src/` e `test/`. |
-| **Teste de fidelidade** (`test/fidelity/`) | Um verificador **independente**, que não importa nada de `src/`, relê as fontes sozinho. Cada texto da saída tem uma entrada no manifesto de proveniência, e o verificador compara caractere por caractere. Divergência, texto sem proveniência ou caminho inexistente fazem o **build falhar**. |
+| **Teste de fidelidade** (`test/fidelity/`) | Um verificador **independente**, que não importa nada de `src/`, relê a fonte sozinho. Cada texto da saída tem uma entrada no manifesto de proveniência, e o verificador compara caractere por caractere. Divergência, texto sem proveniência, caminho inexistente ou texto vindo do Prólogo fazem o **build falhar**. |
 
-As fontes ficam em `C:\Users\ederd\estudo\estudoCatolico\` e são **somente leitura**: o ETL nunca
-grava nada lá.
+A fonte fica em `C:\Users\ederd\estudo\estudoCatolico\` e é **somente leitura**: o ETL nunca grava nada
+lá.
 
 ---
 
@@ -68,10 +67,10 @@ capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CI
 | `book` | string | Nome padronizado do livro (`config/books.json`). Os evangelhos são "Mateus", "Marcos", "Lucas" e "João". |
 | `abbreviation` | string | Sigla como o CIC cita: `Mt`, `Lc`, `1 Cor`, `Sl`… |
 | `usfm` | string | Código USFM do livro: `MAT`, `LUK`, `1CO`, `PSA`… |
-| `chapter` | number | Capítulo na numeração canônica (ver [5.2](#52-versificação-canônica)). |
-| `catechism_paragraphs` | array | Parágrafos do CIC que citam o capítulo, únicos e em ordem crescente. |
+| `chapter` | number | Capítulo na numeração canônica (ver [5.2](#52-numeração-canônica)). |
+| `catechism_paragraphs` | array | Parágrafos do CIC que citam o capítulo, sem repetição e em ordem crescente. |
 | `catechism_paragraphs[].paragraph` | number | Número do parágrafo (§26–§2865). |
-| `catechism_paragraphs[].verses` | number[] | Versículos que o parágrafo cita no capítulo, únicos, em ordem e com os intervalos expandidos. `[]` significa que o capítulo é citado inteiro, como em `(Gn 3)`. |
+| `catechism_paragraphs[].verses` | number[] | Versículos que o parágrafo cita no capítulo, sem repetição, em ordem e com os intervalos expandidos. `[]` significa que o capítulo é citado inteiro, como em `(Gn 3)`. |
 | `catechism_paragraphs[].ref` | string | Rótulo pronto para exibir, no estilo do CIC: `1 Tm 3, 15`, `Mt 6, 9-13`, `Gn 2, 7.22`. É **gerado** a partir dos números, não copiado da fonte. |
 | `catechism_paragraphs[].text` | string | Texto do parágrafo **exatamente como na fonte**. |
 
@@ -105,47 +104,39 @@ npm test             # node:test
 npm run build:data   # gera output/ e reports/
 ```
 
-O `build:data` executa quatro etapas:
+O `build:data` executa três etapas:
 
 ```
-[1] Leitura das fontes + inventário            → reports/inventory.json
-[2] Alinhamento de versificação + conferência  → reports/versification.json
-[3] Catecismo por referência bíblica           → output/catechism_by_chapter.json
-                                                 reports/catechism_citations.json
-                                                 reports/provenance.json
-[4] Teste de fidelidade sobre output/          → falha (exit 1) se houver divergência
+[1] Leitura do Catecismo + inventário     → reports/inventory.json
+[2] Catecismo por referência bíblica      → output/catechism_by_chapter.json
+                                            reports/catechism_citations.json
+                                            reports/provenance.json
+[3] Teste de fidelidade sobre output/     → falha (exit 1) se houver divergência
 ```
 
 A pasta `output/` é apagada e recriada a cada build. `output/` e `reports/` não são versionados.
 
-Os caminhos das fontes ficam em `etl/config/sources.json`.
+O caminho da fonte fica em `etl/config/sources.json`.
 
 ---
 
-## 4. Fontes de dados
+## 4. Fonte de dados
 
 | Fonte | Repositório | Commit usado | Conteúdo |
 |---|---|---|---|
-| **Matos Soares** | [Dancrf/biblia-db](https://github.com/Dancrf/biblia-db) → `biblia.json` | `c5feeff` (2026-03-14) | Bíblia católica, tradução do Pe. Manuel de Matos Soares (1956). 73 livros, 35.624 registros, com 22 números de versículo repetidos. Numeração da Vulgata. |
-| **Ave-Maria** | [fidalgobr/bibliaAveMariaJSON](https://github.com/fidalgobr/bibliaAveMariaJSON) → `bibliaAveMaria.json` | `bb8c7ac` (2024-01-01) | Bíblia Ave-Maria. 73 livros, 35.450 registros. Marcações `*` e `U+00AD` preservadas. Junta versículos em alguns capítulos (ex.: Js 12,8 contém os vv. 8–24). |
 | **Catecismo** | [ntwkst/catecismo-da-igreja-catolica](https://github.com/ntwkst/catecismo-da-igreja-catolica) → `catecismo.json` | `97af80f` (2026-08-25) | CIC em português, texto do [vatican.va](https://www.vatican.va/archive/cathechism_po/index_new/prima-pagina-cic_po.html). 2.865 parágrafos em partes e capítulos. |
 
-### Particularidades das fontes (tratadas, nunca corrigidas no texto)
+### Particularidades da fonte (tratadas, nunca corrigidas no texto)
 
-- **CIC, parte `numero: 0` (Prólogo):** os §§1–25 estão corrompidos e as demais entradas repetem
-  parágrafos de outras partes. A parte é ignorada.
-- **CIC, parágrafos repetidos:** os §§1699, 1895, 2217, 2236, 2439 e 2759 aparecem várias vezes com
-  texto idêntico. Usa-se uma ocorrência; o ETL confere que as cópias são iguais.
-- **CIC, só nota:** 14 parágrafos cujo texto é apenas nota de rodapé. Não geram citações.
-- **CIC, bloco de notas vazado:** 28 parágrafos têm um bloco `N. Cf. …` no fim. As citações só são
-  procuradas antes dele.
-- **CIC, notas de rodapé:** a fonte traz só o marcador `(N)`, sem o conteúdo. Essas notas não estão
-  disponíveis nesta versão.
-- **Bíblias:** registros sem letras ficam como estão:
-  - Ave-Maria Js 19,12-17 = `"[]"`;
-  - Matos Soares 2 Sm 18,25 e Lm 5,5 = `"."`.
-
-A CNBB foi avaliada e **retirada do projeto** (spec, revisão 3): a fonte tinha texto perdido e deslocado.
+- **Parte `numero: 0` (Prólogo):** os §§1–25 estão corrompidos e as demais entradas repetem parágrafos
+  de outras partes. A parte é ignorada.
+- **Parágrafos repetidos:** os §§1699, 1895, 2217, 2236, 2439 e 2759 aparecem várias vezes com texto
+  idêntico. Usa-se uma ocorrência; o ETL confere que as cópias são iguais.
+- **Só nota:** 14 parágrafos cujo texto é apenas nota de rodapé. Não geram citações.
+- **Bloco de notas vazado:** 28 parágrafos têm um bloco `N. Cf. …` no fim. As citações só são procuradas
+  antes dele.
+- **Notas de rodapé:** a fonte traz só o marcador `(N)`, sem o conteúdo. Essas notas não estão disponíveis
+  nesta versão.
 
 ---
 
@@ -155,15 +146,14 @@ A CNBB foi avaliada e **retirada do projeto** (spec, revisão 3): a fonte tinha 
 
 `etl/config/books.json` lista os 73 livros com:
 - USFM, nome padronizado e testamento;
-- as siglas aceitas nas citações do CIC (`cic_abbreviations`);
-- a **ordem fixa dos livros em cada fonte**.
+- as siglas aceitas nas citações do CIC (`cic_abbreviations`). A primeira é a usada em `abbreviation` e
+  `ref`.
 
-As fontes são mapeadas para USFM por essa ordem, conferida contra o nome do livro na fonte, e não por
-busca de nome. Os nomes são ambíguos: `Jó` × `João`, `Livro de Job (Jó)`.
+### 5.2 Numeração canônica
 
-### 5.2 Versificação canônica
+Capítulos e versículos seguem a **numeração hebraica** do `org.vrs` (Paratext/UBS), que é a usada pelo
+CIC. Ela serve para validar cada citação (capítulo e versículo precisam existir) e para ordenar a saída.
 
-- **Chave canônica:** `USFM.CAPÍTULO.VERSÍCULO`, na **numeração hebraica** (`org.vrs` do Paratext/UBS).
 - **Exceções:** Daniel, Ester e Baruc seguem a **numeração católica**, como o CIC cita:
   - Daniel com 14 capítulos, incluindo o Cântico dos três jovens em Dn 3,24-90, Susana = Dn 13 e Bel = Dn 14;
   - Ester com 16 capítulos (Vulgata);
@@ -172,16 +162,8 @@ busca de nome. Os nomes são ambíguos: `Jó` × `João`, `Livro de Job (Jó)`.
   Essas regras estão em `etl/config/versification/canonical.json`.
 - **Salmos:** o CIC cita na numeração hebraica. Isso foi conferido nos dados: 33 de 33 citações com
   trecho literal comparável batem com a hebraica, e nenhuma com a Vulgata.
-- **Tabelas de conversão:** `org.vrs`, `vul.vrs` e `eng.vrs`, copiados de
-  [ubsicap/versification_json](https://github.com/ubsicap/versification_json) (commit `0833abd`, MIT).
-- **Exceções por tradução:** ficam em `etl/config/versification/exceptions/<traducao>.json`. Cada arquivo
-  define a tabela base por livro (`org` | `vul` | `eng` | `canonical`) e regras pontuais:
-  - `from`, na numeração da fonte: `c:v`, `c:v-w` ou `c:v#k` (k-ésima ocorrência de um número repetido);
-  - `to`, na numeração canônica: `c:v` ou `c:v-w`;
-  - `additional`, quando dois registros caem no mesmo versículo.
-
-A versificação só é necessária para exportar o **texto bíblico** alinhado, que ainda está em andamento
-(fase F3). O índice por capítulo do Catecismo não depende dela.
+- **Tabela:** `org.vrs`, copiado de [ubsicap/versification_json](https://github.com/ubsicap/versification_json)
+  (commit `0833abd`, MIT).
 
 ### 5.3 Parser de citações do CIC
 
@@ -246,28 +228,26 @@ catechism-cross-reference/
 └── etl/
     ├── package.json · tsconfig.json
     ├── config/
-    │   ├── sources.json               # caminhos das fontes (somente leitura)
-    │   ├── books.json                 # 73 livros, siglas do CIC, ordem por fonte
-    │   ├── catechism.json             # parágrafos só nota e correções de sigla
+    │   ├── sources.json               # caminho da fonte do Catecismo (somente leitura)
+    │   ├── books.json                 # 73 livros e siglas do CIC
+    │   ├── catechism.json             # parágrafos só nota e correções de sigla e de versículo
     │   └── versification/
-    │       ├── org.vrs · vul.vrs · eng.vrs · LICENSE-ubsicap.txt
-    │       ├── canonical.json         # Daniel, Ester e Baruc na numeração católica
-    │       └── exceptions/            # matos_soares.json, ave_maria.json
+    │       ├── org.vrs · LICENSE-ubsicap.txt
+    │       └── canonical.json         # Daniel, Ester e Baruc na numeração católica
     ├── src/
-    │   ├── index.ts                   # build:data (etapas [1]–[4])
+    │   ├── index.ts                   # build:data (etapas [1]–[3])
     │   ├── config.ts · books.ts
-    │   ├── sources/                   # leitores estritos e inventário
-    │   ├── versification/             # .vrs, canônico, alinhamento, conferência
+    │   ├── sources/                   # leitor estrito do Catecismo e inventário
+    │   ├── versification/             # leitor .vrs e numeração canônica
     │   └── catechism/                 # filtros, parser de citações, índice por capítulo
     ├── test/
     │   ├── *.test.ts                  # node:test
     │   └── fidelity/                  # verificador de fidelidade independente
-    ├── tools/                         # scripts de análise (fora do pipeline)
+    ├── tools/
+    │   └── escape-invisible.cjs       # troca caracteres invisíveis literais por escapes no código
     ├── output/                        # gerado; não versionado
     └── reports/                       # gerado; não versionado
 ```
-
-Os scripts de `etl/tools/` estão documentados em `docs/implementacoes_futuras.md`, seção 7.
 
 ---
 
@@ -275,9 +255,8 @@ Os scripts de `etl/tools/` estão documentados em `docs/implementacoes_futuras.m
 
 | Arquivo | Conteúdo |
 |---|---|
-| `reports/inventory.json` | Contagens por fonte: livros, capítulos, registros, repetidos, vazios, lacunas e repetidos do CIC. |
-| `reports/versification.json` | Conferência do alinhamento: tabela × fonte, colisões, fora do canônico, versículos sem texto, suspeitas lexicais. |
-| `reports/catechism_citations.json` | Parágrafos lidos, citações, formas irregulares, correções aplicadas e citações não resolvidas. |
+| `reports/inventory.json` | Contagens do Catecismo: parágrafos declarados, ocorrências, Prólogo, faltantes e repetidos (com os vizinhos de cada cópia). |
+| `reports/catechism_citations.json` | Parágrafos lidos, citações, formas irregulares, correções de sigla e de versículo aplicadas, versículos inválidos e citações não resolvidas. |
 | `reports/provenance.json` | Manifesto de proveniência: para cada texto da saída, o registro da fonte (`locator`) e o caminho na saída (`file` + JSON Pointer). |
 
 ---
@@ -288,8 +267,7 @@ Os scripts de `etl/tools/` estão documentados em `docs/implementacoes_futuras.m
   parágrafos com citação. Por exemplo, os §§881, 882 e 936 citam Mt 16 apenas em nota. Cobrir as notas
   exige outra fonte, como o texto do vatican.va.
 - **Só citações entre parênteses** são reconhecidas; uma menção no texto corrido não é capturada.
-- **O texto bíblico não entra.** A entrega indica os versículos citados (`verses`), mas não inclui o
-  texto deles nas duas traduções. Isso depende de terminar a versificação (fase F3).
+- **O texto bíblico não entra.** A saída indica os versículos citados (`verses`), mas não o texto deles.
 - **Numeração dos deuterocanônicos conferida só em parte.** 2 Mac 12, 46 foi convertido; as outras
   citações de Sabedoria, Eclesiástico, Tobias e Daniel (cerca de 30) não foram conferidas versículo a
   versículo.
@@ -299,18 +277,15 @@ Os scripts de `etl/tools/` estão documentados em `docs/implementacoes_futuras.m
 
 ## 9. Referências e licenças
 
-- **Versificação:** [ubsicap/versification_json](https://github.com/ubsicap/versification_json), licença
-  MIT, © 2019 United Bible Societies Institute for Computer Assisted Publishing. Cópia da licença em
-  `etl/config/versification/LICENSE-ubsicap.txt`.
 - **Catecismo da Igreja Católica:** texto do
   [vatican.va](https://www.vatican.va/archive/cathechism_po/index_new/prima-pagina-cic_po.html), via
   [ntwkst/catecismo-da-igreja-catolica](https://github.com/ntwkst/catecismo-da-igreja-catolica).
   © Libreria Editrice Vaticana.
-- **Bíblia Matos Soares:** via [Dancrf/biblia-db](https://github.com/Dancrf/biblia-db).
-- **Bíblia Ave-Maria:** via [fidalgobr/bibliaAveMariaJSON](https://github.com/fidalgobr/bibliaAveMariaJSON).
+- **Numeração bíblica:** [ubsicap/versification_json](https://github.com/ubsicap/versification_json), licença
+  MIT, © 2019 United Bible Societies Institute for Computer Assisted Publishing. Cópia da licença em
+  `etl/config/versification/LICENSE-ubsicap.txt`.
 - **USFM:** códigos de livro do padrão
   [Unified Standard Format Markers](https://ubsicap.github.io/usfm/).
 
-> **Direitos autorais** (spec, seção 11): os textos da Ave-Maria e do CIC têm direitos de seus editores.
-> Isso não impede o desenvolvimento local; a responsabilidade pelo licenciamento é do projeto que publicar
-> a base gerada.
+> **Direitos autorais** (spec, seção 11): o texto do CIC tem direitos de seu editor. Isso não impede o
+> desenvolvimento local; a responsabilidade pelo licenciamento é do projeto que publicar a base gerada.

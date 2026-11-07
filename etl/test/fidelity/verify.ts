@@ -10,7 +10,8 @@
 // Falha quando:
 //  1. um texto da saída difere da fonte (comparação exata de string — sem trim/normalize);
 //  2. um campo de texto da saída não tem entrada no manifesto (texto de origem desconhecida);
-//  3. um texto não vazio da fonte não aparece na saída, ou aparece mais de uma vez na mesma visão;
+//  3. (opcional, `requiredViews`) um parágrafo do CIC não aparece numa visão da saída, ou aparece
+//     mais de uma vez nela;
 //  4. o manifesto aponta para algo inexistente (registro da fonte, arquivo ou caminho na saída).
 
 import { readdirSync } from "node:fs";
@@ -19,13 +20,6 @@ import { RawSources, readJsonStrict, type Locator, type RawSourceId, type RawSou
 
 /** Campos da saída que carregam texto da fonte e por isso precisam de proveniência. */
 export const SOURCE_TEXT_KEYS: ReadonlySet<string> = new Set(["text", "part_title", "chapter_title"]);
-
-/** Visões da saída em que cada texto da fonte deve aparecer exatamente uma vez (saída completa da spec). */
-export const REQUIRED_VIEWS: Record<RawSourceId, readonly string[]> = {
-  matos_soares: ["bible"],
-  ave_maria: ["bible"],
-  catechism: ["catechism", "catechism/full.json"],
-};
 
 export interface ManifestEntry {
   source: RawSourceId;
@@ -60,7 +54,7 @@ export interface FidelityResult {
 }
 
 export function viewOf(file: string): string {
-  return file === "catechism/full.json" ? file : file.split("/")[0]!;
+  return file.split("/")[0]!;
 }
 
 function parsePointer(pointer: string): string[] {
@@ -117,17 +111,18 @@ function collectTextFields(doc: unknown, path: (string | number)[] = [], out: st
 }
 
 /**
- * `requiredViews` troca a exigência de cobertura (3) para saídas parciais — por exemplo, o
- * índice por capítulo, que só traz os parágrafos citados e repete um parágrafo em cada
- * capítulo que ele cita. As verificações 1, 2 e 4 valem sempre.
+ * `requiredViews`: visões (primeiro segmento do caminho em `output/`) em que todo parágrafo
+ * do CIC precisa aparecer exatamente uma vez (verificação 3). Vazio por padrão: o índice por
+ * capítulo só traz os parágrafos citados e repete cada um em todo capítulo que ele cita.
+ * As verificações 1, 2 e 4 valem sempre.
  */
 export function verifyFidelity(opts: {
   sources: RawSourcePaths | RawSources;
   outputDir: string;
   manifest: Manifest;
-  requiredViews?: Record<RawSourceId, readonly string[]>;
+  requiredViews?: readonly string[];
 }): FidelityResult {
-  const requiredViews = opts.requiredViews ?? REQUIRED_VIEWS;
+  const requiredViews = opts.requiredViews ?? [];
   const raw = opts.sources instanceof RawSources ? opts.sources : new RawSources(opts.sources);
   const result: FidelityResult = { ok: false, checked: 0, divergences: [], unmanifested: [], missing: [], duplicated: [] };
 
@@ -176,7 +171,7 @@ export function verifyFidelity(opts: {
 
   // Todo texto não vazio da fonte aparece exatamente uma vez em cada visão obrigatória.
   for (const rec of raw.coverage) {
-    for (const view of requiredViews[rec.source]) {
+    for (const view of requiredViews) {
       const n = seenPerView.get(view)?.get(rec.key) ?? 0;
       if (n === 0) result.missing.push({ key: rec.key, view });
       else if (n > 1) result.duplicated.push({ key: rec.key, view, count: n });

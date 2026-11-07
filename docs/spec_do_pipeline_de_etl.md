@@ -5,6 +5,8 @@
 > **Revisão 3 — 2026-11-06 [DECIDIDO].** A tradução CNBB foi retirada do projeto (a fonte tinha texto perdido e deslocado); restam Matos Soares e Ave-Maria.
 >
 > **Revisão 4 — 2026-11-06 [DECIDIDO].** Primeira entrega reduzida: o índice **Catecismo por capítulo bíblico** (seção 5.E), gerado só a partir do CIC, sem depender do alinhamento das traduções. Os evangelhos passam a se chamar Mateus, Marcos, Lucas e João (sem "São"; seção 9).
+>
+> **Revisão 5 — 2026-11-06 [DECIDIDO].** A versão atual contém **só o necessário para o índice do Catecismo (5.E)**. O tratamento das Bíblias (leitores Matos Soares/Ave-Maria, alinhamento de versificação, `vul.vrs`/`eng.vrs`, exceções por tradução) foi removido do código; continua especificado nas seções 3–6 e 10 e preservado no histórico do git (commit `19cc1d7`). Da versificação ficam só o `org.vrs` e o `canonical.json` (sem `from_org`), usados para validar e ordenar as citações. O `build:data` tem três etapas: inventário do CIC, índice por capítulo e teste de fidelidade.
 
 ## 1. Visão Geral
 
