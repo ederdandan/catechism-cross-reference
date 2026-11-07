@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CitationParser } from "../src/catechism/citations.ts";
-import { BY_CHAPTER_FILE, runCatechism } from "../src/catechism/index.ts";
+import { BY_CHAPTER_FILE, formatRef, loadCatechismConfig, runCatechism } from "../src/catechism/index.ts";
 import { RawSources } from "./fidelity/rawSources.ts";
 import { formatFidelityResult, verifyFidelity } from "./fidelity/verify.ts";
 import type { CatechismParagraph } from "../src/catechism/paragraphs.ts";
@@ -83,9 +83,27 @@ test("catecismo por capítulo: dados reais", () => {
   assert.deepEqual(r.unresolved, []);
   assert.deepEqual(r.fixesApplied.map((f) => `${f.paragraph} ${f.usfm} ${f.chapter}`), ["320 HEB 1", "371 GEN 2", "455 1CO 12"]);
 
-  const mt16 = cic.byChapter.find((e) => e.usfm === "MAT" && e.chapter === 16)!;
+  // Correções de versículo: todas aplicadas; nenhum versículo inexistente na saída.
+  assert.equal(r.verseFixesApplied.length, 12);
+  assert.deepEqual(r.invalidVerses, []);
+
+  const find = (u: string, c: number) => cic.byChapter.find((e) => e.usfm === u && e.chapter === c)!;
+  const brief = (u: string, c: number) => find(u, c).catechism_paragraphs.map((p) => `${p.paragraph} ${p.ref}`);
+  const mt16 = find("MAT", 16);
   assert.deepEqual({ ...mt16, catechism_paragraphs: mt16.catechism_paragraphs.map((p) => p.paragraph) },
     { book: "Mateus", abbreviation: "Mt", usfm: "MAT", chapter: 16, catechism_paragraphs: [153, 424, 442, 552, 553, 554, 1444] });
+  assert.deepEqual(brief("MAT", 16), ["153 Mt 16, 17", "424 Mt 16, 16", "442 Mt 16, 17", "552 Mt 16, 16.18", "553 Mt 16, 19", "554 Mt 16, 21", "1444 Mt 16, 19"]);
+  assert.deepEqual(brief("1TI", 3), ["171 1 Tm 3, 15", "463 1 Tm 3, 16", "1590 1 Tm 3, 1", "2032 1 Tm 3, 15"]);
+  // Capítulo inteiro → verses vazio.
+  assert.deepEqual(find("GEN", 3).catechism_paragraphs.find((p) => p.paragraph === 390)!.verses, []);
+  // Correções: OCR (Act 4, l2), digitação (Gn 9, 5-61; Mt 5, 47) e Vulgata (2 Mac 12, 46).
+  const ref = (u: string, c: number, n: number) => find(u, c).catechism_paragraphs.find((p) => p.paragraph === n)!.ref;
+  assert.equal(ref("ACT", 4, 432), "Act 4, 12");
+  assert.equal(ref("GEN", 9, 2260), "Gn 9, 5-6");
+  assert.equal(ref("MAT", 5, 1693), "Mt 5, 48");
+  assert.equal(ref("2MA", 12, 958), "2 Mac 12, 45");
+  // Correção de sigla usa a sigla padrão do livro no rótulo.
+  assert.equal(ref("HEB", 1, 320), "Heb 1, 3");
 
   // Chaves fixas, parágrafos ordenados e únicos, ordem dos livros/capítulos.
   const order = src.books.books.map((b) => b.usfm);
@@ -99,10 +117,28 @@ test("catecismo por capítulo: dados reais", () => {
     const nums = e.catechism_paragraphs.map((p) => p.paragraph);
     assert.deepEqual(nums, [...new Set(nums)].sort((a, b) => a - b));
     for (const p of e.catechism_paragraphs) {
-      assert.deepEqual(Object.keys(p), ["paragraph", "text"]);
+      assert.deepEqual(Object.keys(p), ["paragraph", "verses", "ref", "text"]);
       assert.ok(p.paragraph >= 26 && p.paragraph <= 2865);
+      assert.deepEqual(p.verses, [...new Set(p.verses)].sort((a, b) => a - b));
+      assert.equal(p.ref, formatRef(e.abbreviation, e.chapter, p.verses));
     }
   }
+});
+
+test("formatRef: rótulo no estilo do CIC com intervalos compactados", () => {
+  assert.equal(formatRef("Gn", 3, []), "Gn 3");
+  assert.equal(formatRef("1 Tm", 3, [15]), "1 Tm 3, 15");
+  assert.equal(formatRef("Mt", 6, [9, 10, 11, 12, 13]), "Mt 6, 9-13");
+  assert.equal(formatRef("Gn", 2, [7, 22]), "Gn 2, 7.22");
+  assert.equal(formatRef("Mt", 5, [33, 34, 37]), "Mt 5, 33-34.37");
+});
+
+test("correção de versículo que não casa com a fonte interrompe o build", () => {
+  const src = loadAllSources();
+  const canonical = runVersification(src).canonical;
+  const cfg = loadCatechismConfig();
+  const bad = { ...cfg, verse_fixes: [{ paragraph: 432, usfm: "ACT", chapter: 4, from: [99], verses: [12], note: "teste" }] };
+  assert.throws(() => runCatechism(src, canonical, bad), /casou com 0 citações/u);
 });
 
 test("catecismo por capítulo: fidelidade dos textos (verificador independente)", () => {

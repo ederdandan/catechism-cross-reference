@@ -45,7 +45,7 @@ grava nada lá.
 
 ## 2. Entrega atual: Catecismo por capítulo bíblico
 
-O arquivo `etl/output/catechism_by_chapter.json` (~982 KB) é uma lista, na ordem canônica dos livros e
+O arquivo `etl/output/catechism_by_chapter.json` (~1,1 MB) é uma lista, na ordem canônica dos livros e
 capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CIC (spec, seção 5.E).
 
 ```json
@@ -56,8 +56,8 @@ capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CI
     "usfm": "MAT",
     "chapter": 16,
     "catechism_paragraphs": [
-      { "paragraph": 153, "text": "Quando Pedro confessa que Jesus é o Cristo, o Filho do Deus vivo, Jesus declara-…" },
-      { "paragraph": 424, "text": "Movidos pela graça do Espírito Santo e atraídos pelo Pai, nós cremos e confessam…" }
+      { "paragraph": 153, "verses": [17], "ref": "Mt 16, 17", "text": "Quando Pedro confessa que Jesus é o Cristo, o Filho do Deus vivo, Jesus declara-…" },
+      { "paragraph": 552, "verses": [16, 18], "ref": "Mt 16, 16.18", "text": "…" }
     ]
   }
 ]
@@ -71,6 +71,8 @@ capítulos, de todo capítulo bíblico citado por pelo menos um parágrafo do CI
 | `chapter` | number | Capítulo na numeração canônica (ver [5.2](#52-versificação-canônica)). |
 | `catechism_paragraphs` | array | Parágrafos do CIC que citam o capítulo, únicos e em ordem crescente. |
 | `catechism_paragraphs[].paragraph` | number | Número do parágrafo (§26–§2865). |
+| `catechism_paragraphs[].verses` | number[] | Versículos que o parágrafo cita no capítulo, únicos, em ordem e com os intervalos expandidos. `[]` significa que o capítulo é citado inteiro, como em `(Gn 3)`. |
+| `catechism_paragraphs[].ref` | string | Rótulo pronto para exibir, no estilo do CIC: `1 Tm 3, 15`, `Mt 6, 9-13`, `Gn 2, 7.22`. É **gerado** a partir dos números, não copiado da fonte. |
 | `catechism_paragraphs[].text` | string | Texto do parágrafo **exatamente como na fonte**. |
 
 **Números desta versão:**
@@ -200,12 +202,27 @@ O parser trabalha em duas fases:
 
 Ficam de fora fontes patrísticas e outras siglas fora da lista, como `PL`, `PG`, `DS` e `Sermão`.
 
-**Formas irregulares da fonte:** quando o capítulo é inequívoco, a citação é aceita no capítulo e
-registrada no relatório; versículos ambíguos não são adivinhados. São 24 casos, por exemplo:
-- `I Jo 4, 9`, numeral romano;
-- `Jo14, 16-17`, sigla colada no número;
-- `Act 4, l2`, letra "l" no lugar de "1";
-- `Gn 9, 5-61`, erro de digitação por 5-6.
+**Formas irregulares da fonte:** quando o capítulo é inequívoco, a citação é aceita e registrada no
+relatório. São 24 casos, por exemplo `I Jo 4, 9` (numeral romano) e `Jo14, 16-17` (sigla colada no
+número).
+
+**Correções de versículo** (`verse_fixes` em `etl/config/catechism.json`): foram revisadas e aprovadas. Cada uma
+precisa casar exatamente com o que o parser leu, senão o build falha. Nenhum versículo da saída pode
+ficar fora da numeração canônica.
+
+| § | Na fonte | Na saída | Motivo |
+|---|---|---|---|
+| 432 | `Act 4, l2` | Act 4, 12 | letra "l" no lugar de "1" |
+| 1544 | `Heb 5, l0` | Heb 5, 10 | idem |
+| 2330 | `Ex 20, l4` | Ex 20, 14 | idem |
+| 1987 | `Rm 6, 8- l l` | Rm 6, 8-11 | idem |
+| 2475 | `1 Pe 2, I` | 1 Pe 2, 1 | letra "I" no lugar de "1" |
+| 1507 | `Mc 16, 1 7-18` | Mc 16, 17-18 | espaço dentro do número |
+| 2260 | `Gn 9, 5-61` | Gn 9, 5-6 | digitação (Gn 9 tem 29 versículos) |
+| 2449 | `Dt 15, 1 l` | Dt 15, 11 | «Nunca faltarão os pobres na terra» |
+| 1693 | `Mt 5, 47` | Mt 5, 48 | «perfeitos como o Pai celeste é perfeito» |
+| 1858 | `Mc 10, 18` | Mc 10, 19 | «Não mates, não cometas adultério…» |
+| 958, 1032 | `2 Mac 12, 46` | 2 Mac 12, 45 | numeração da Vulgata convertida para a canônica |
 
 **Correções de sigla** (`etl/config/catechism.json`): valem só no parágrafo indicado e foram revisadas.
 
@@ -271,8 +288,11 @@ Os scripts de `etl/tools/` estão documentados em `docs/implementacoes_futuras.m
   parágrafos com citação. Por exemplo, os §§881, 882 e 936 citam Mt 16 apenas em nota. Cobrir as notas
   exige outra fonte, como o texto do vatican.va.
 - **Só citações entre parênteses** são reconhecidas; uma menção no texto corrido não é capturada.
-- **Granularidade por capítulo** na entrega atual. O nível de versículo, com o texto bíblico das duas
-  traduções, depende de terminar a versificação (fase F3).
+- **O texto bíblico não entra.** A entrega indica os versículos citados (`verses`), mas não inclui o
+  texto deles nas duas traduções. Isso depende de terminar a versificação (fase F3).
+- **Numeração dos deuterocanônicos conferida só em parte.** 2 Mac 12, 46 foi convertido; as outras
+  citações de Sabedoria, Eclesiástico, Tobias e Daniel (cerca de 30) não foram conferidas versículo a
+  versículo.
 - **Textos com as imperfeições da fonte** (ver [seção 2](#2-entrega-atual-catecismo-por-capítulo-bíblico)).
 
 ---

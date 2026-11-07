@@ -160,8 +160,8 @@ Lista, na ordem dos livros (seção 9) e dos capítulos, de todo capítulo citad
     "usfm": "MAT",
     "chapter": 16,
     "catechism_paragraphs": [
-      { "paragraph": 153, "text": "<texto do parágrafo exatamente como na fonte>" },
-      { "paragraph": 424, "text": "..." }
+      { "paragraph": 153, "verses": [17], "ref": "Mt 16, 17", "text": "<texto do parágrafo exatamente como na fonte>" },
+      { "paragraph": 552, "verses": [16, 18], "ref": "Mt 16, 16.18", "text": "..." }
     ]
   }
 ]
@@ -169,6 +169,9 @@ Lista, na ordem dos livros (seção 9) e dos capítulos, de todo capítulo citad
 
 * `book`: nome padronizado; `abbreviation`: sigla como o CIC cita (a primeira da seção 9; o CIC usa só ela: `Act` 54×, `Rm` 100×); `chapter`: numeração canônica (seção 4). Nos Salmos o CIC cita na numeração hebraica (conferido: 33 de 33 citações com trecho literal comparável; nenhuma na Vulgata).
 * `catechism_paragraphs`: parágrafos únicos, em ordem crescente, que citam o capítulo segundo as seções 7 e 8. O mesmo parágrafo aparece em cada capítulo que cita.
+* `verses`: versículos canônicos que o parágrafo cita no capítulo, únicos e em ordem crescente (intervalos expandidos; sufixos `a`/`b` descartados). `[]` = capítulo citado inteiro (ex.: `(Gn 3)`).
+* `ref`: rótulo **gerado** a partir de `abbreviation`, `chapter` e `verses`, no estilo do CIC, com intervalos compactados (`Mt 6, 9-13`, `Gn 2, 7.22`). Não é texto copiado da fonte.
+* **Correções de versículo** (`etl/config/catechism.json` → `verse_fixes`, aprovadas pelo usuário): erros de OCR/digitação da fonte (§432 `Act 4, l2` → 12; §1544 `Heb 5, l0` → 10; §2330 `Ex 20, l4` → 14; §1987 `Rm 6, 8- l l` → 8-11; §2475 `1 Pe 2, I` → 1; §1507 `Mc 16, 1 7-18` → 17-18; §2260 `Gn 9, 5-61` → 5-6; §2449 `Dt 15, 1 l` → 11), versículo errado conferido pelo trecho citado (§1693 `Mt 5, 47` → 48; §1858 `Mc 10, 18` → 19) e numeração da Vulgata (§§958 e 1032 `2 Mac 12, 46` → 12, 45 canônico). Cada correção precisa casar exatamente com o que o parser leu, senão o build falha; nenhum versículo da saída pode ficar fora da numeração canônica.
 * `text`: a string da fonte, sem nenhuma alteração (seção 2) — inclusive marcadores de nota `(N)`, títulos de seção embutidos no fim, blocos de notas vazados e `U+00AD`.
 * **Fidelidade:** cada `text` tem entrada no manifesto `etl/reports/provenance.json`; o `build:data` roda o verificador independente sobre `etl/output/` e falha em qualquer divergência. Como a saída é parcial e repete parágrafos por capítulo, não se exige a cobertura "cada texto exatamente uma vez" (2.1, item 3); as demais verificações valem.
 * **Cobertura:** só citações do corpo do texto (seção 7.6). Citações que estão apenas em notas de rodapé (ex.: §§881, 882 e 936 para Mt 16) não entram nesta versão.

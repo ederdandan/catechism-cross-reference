@@ -7,10 +7,14 @@ Registro de 2026-11-06, para retomar o trabalho depois. Fonte da verdade continu
 
 Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.E (revisão 4).
 
-* **Saída:** `npm run build:data` gera `etl/output/catechism_by_chapter.json` (~982 KB).
+* **Saída:** `npm run build:data` gera `etl/output/catechism_by_chapter.json` (~1,1 MB).
   * Tem 334 capítulos de 50 livros e 1.337 citações em 809 parágrafos.
   * Cada entrada tem `book`, `abbreviation`, `usfm`, `chapter` e
-    `catechism_paragraphs: [{ paragraph, text }]`.
+    `catechism_paragraphs: [{ paragraph, verses, ref, text }]`.
+  * `verses` traz os versículos canônicos citados (`[]` = capítulo inteiro); `ref` é um rótulo gerado,
+    como `1 Tm 3, 15`.
+  * 12 versículos foram corrigidos (`verse_fixes`): OCR/digitação, §§1693 e 1858, e 2 Mac 12, 46
+    convertido da Vulgata. Aprovado pelo usuário em 2026-11-06.
 * **Fidelidade:** etapa [4] do build. Os 1.250 textos são comparados com a fonte pelo verificador
   independente, e qualquer divergência interrompe o build.
 * **Revisado pelo usuário em 2026-11-06:**
@@ -29,8 +33,12 @@ Branch `feat/catecismo-por-referencia-biblica`. Especificada na spec, seção 5.
   * os textos levam as imperfeições da fonte (marcadores `(N)`, títulos embutidos, notas vazadas,
     `U+00AD`), e o consumidor deve lidar com elas.
 * **Próximos passos possíveis desta linha:**
+  * `catechism_by_verse.json`: índice leve versículo → parágrafos, só números (spec 5.C);
+  * conferência lexical automática no relatório: o trecho «…» citado comparado com o texto bíblico.
+    Na análise, 717 de 811 citações bateram e 94 ficaram como suspeitas para triagem;
+  * conferir a numeração das cerca de 30 citações deuterocanônicas restantes (Sb, Eclo, Tb, Dn);
   * notas de rodapé, com uma nova fonte (vatican.va);
-  * granularidade por versículo, que exige terminar a F3 se for incluir o texto bíblico.
+  * texto do versículo bíblico na saída, que exige terminar a F3.
 
 ## 1. Estado atual
 
