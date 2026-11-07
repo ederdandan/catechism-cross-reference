@@ -7,6 +7,8 @@
 > **Revisão 4 — 2026-11-06 [DECIDIDO].** Primeira entrega reduzida: o índice **Catecismo por capítulo bíblico** (seção 5.E), gerado só a partir do CIC, sem depender do alinhamento das traduções. Os evangelhos passam a se chamar Mateus, Marcos, Lucas e João (sem "São"; seção 9).
 >
 > **Revisão 5 — 2026-11-06 [DECIDIDO].** A versão atual contém **só o necessário para o índice do Catecismo (5.E)**. O tratamento das Bíblias (leitores Matos Soares/Ave-Maria, alinhamento de versificação, `vul.vrs`/`eng.vrs`, exceções por tradução) foi removido do código; continua especificado nas seções 3–6 e 10 e preservado no histórico do git (commit `19cc1d7`). Da versificação ficam só o `org.vrs` e o `canonical.json` (sem `from_org`), usados para validar e ordenar as citações. O `build:data` tem três etapas: inventário do CIC, índice por capítulo e teste de fidelidade.
+>
+> **Revisão 6 — 2026-11-06 [DECIDIDO].** `etl/output/` passa a ser **versionado** no git (substitui a decisão "não versionado" da seção 10). Todo commit que muda o ETL ou a config leva junto a saída regenerada; `npm run check:data` refaz o build e falha se a saída versionada estiver desatualizada. O `.gitattributes` fixa fim de linha LF na saída. `etl/reports/` continua fora do git.
 
 ## 1. Visão Geral
 
@@ -409,7 +411,7 @@ etl/
 **Tecnologia:**
 * **Node.js 24** (instalado: v24.22.1) + **TypeScript**.
 * **Testes:** executor nativo `node:test`.
-* **Git [DECIDIDO]:** `etl/output/` e `etl/reports/` **não são versionados** (ficam no `.gitignore`); a base é sempre regenerada pelo ETL.
+* **Git [DECIDIDO — revisão 6]:** `etl/output/` **é versionado**, sempre igual ao que o ETL gera a partir do commit (conferido por `npm run check:data`), com fim de linha LF fixado no `.gitattributes`; `etl/reports/` não é versionado (fica no `.gitignore`).
 * **Execução:** um único comando (ex.: `npm run build:data`) gera `etl/output/` do zero; a pasta é apagada e recriada a cada execução para não sobrar arquivo antigo.
 * Leitura de JSON das fontes com `utf-8` e remoção apenas do BOM do *arquivo*, se existir; o conteúdo dos textos nunca é normalizado (sem `normalize()`, sem `trim()`).
 

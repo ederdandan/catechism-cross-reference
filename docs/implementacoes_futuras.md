@@ -11,6 +11,7 @@ Especificada na spec, seção 5.E (revisões 4 e 5).
   * Tem 334 capítulos de 50 livros e 1.337 citações em 809 parágrafos.
   * Cada entrada tem `book`, `abbreviation`, `usfm`, `chapter` e
     `catechism_paragraphs: [{ paragraph, verses, ref, text }]`.
+  * O arquivo é versionado no git (spec, revisão 6); `npm run check:data` confere se está em dia.
   * `verses` traz os versículos canônicos citados (`[]` = capítulo inteiro); `ref` é um rótulo gerado,
     como `1 Tm 3, 15`.
   * 12 versículos foram corrigidos (`verse_fixes`): OCR/digitação, §§1693 e 1858, e 2 Mac 12, 46

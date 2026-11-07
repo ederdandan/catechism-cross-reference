@@ -14,7 +14,7 @@ ETL que consolida Bíblias católicas em português (Matos Soares e Ave-Maria) e
 ## Projeto
 
 * Código em `etl/` — **Node.js 24 + TypeScript**; testes com `node:test`. Estrutura na spec, seção 10.1.
-* Saída em `etl/output/`; `etl/output/` e `etl/reports/` não são versionados.
+* Saída em `etl/output/`, **versionada** (todo commit que muda o ETL leva a saída regenerada; conferir com `npm run check:data`); `etl/reports/` não é versionado.
 * Chave canônica: numeração **hebraica** (`USFM.CAP.VERS`), exceto Daniel e Ester (numeração católica).
 * Tabelas de versificação: Paratext/UBS (`ubsicap/versification_json`, MIT) + exceções por fonte.
 

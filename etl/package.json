@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build:data": "node src/index.ts",
+    "check:data": "node src/index.ts && git diff --exit-code -- output",
     "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },

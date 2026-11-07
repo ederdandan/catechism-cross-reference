@@ -1,0 +1,2 @@
+# Saída do ETL versionada: bytes exatos (sem conversão CRLF no Windows) e marcada como gerada.
+etl/output/** text eol=lf linguist-generated=true

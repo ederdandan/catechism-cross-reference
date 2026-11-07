@@ -102,6 +102,7 @@ npm install
 npm run typecheck    # tsc --noEmit
 npm test             # node:test
 npm run build:data   # gera output/ e reports/
+npm run check:data   # refaz o build e falha se output/ difere do que está no git
 ```
 
 O `build:data` executa três etapas:
@@ -114,7 +115,12 @@ O `build:data` executa três etapas:
 [3] Teste de fidelidade sobre output/     → falha (exit 1) se houver divergência
 ```
 
-A pasta `output/` é apagada e recriada a cada build. `output/` e `reports/` não são versionados.
+A pasta `output/` é apagada e recriada a cada build.
+
+**Versionamento:** `output/` fica no git, para quem consome a base usar o arquivo direto do repositório
+e ver no histórico o que mudou entre versões. Todo commit que altera o ETL ou a config deve levar a
+saída regenerada; `npm run check:data` confere isso. O `.gitattributes` fixa fim de linha LF na
+saída, para os bytes não mudarem no checkout em Windows. `reports/` não é versionado.
 
 O caminho da fonte fica em `etl/config/sources.json`.
 
@@ -245,7 +251,7 @@ catechism-cross-reference/
     │   └── fidelity/                  # verificador de fidelidade independente
     ├── tools/
     │   └── escape-invisible.cjs       # troca caracteres invisíveis literais por escapes no código
-    ├── output/                        # gerado; não versionado
+    ├── output/                        # gerado; versionado
     └── reports/                       # gerado; não versionado
 ```
 
